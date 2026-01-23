@@ -22,7 +22,7 @@ export default function Page() {
                     <div className="relative hidden md:block">
                         <div className="relative">
                             <div className="flex items-center mt-32 justify-center">
-                                <Image src="https://pvzcbbmajzlitskhujgn.supabase.co/storage/v1/object/public/risewise/people.svg" alt="group of people" width={500} height={300} priority />
+                                <Image src="/people.svg" alt="group of people" width={500} height={300} priority />
                             </div>
                         </div>
                     </div>
