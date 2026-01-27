@@ -1,11 +1,14 @@
 import { Nav } from "@/components/nav-menu";
 import NextTopLoader from 'nextjs-toploader';
 import Link from "next/link";
+import { SpeedInsights } from "@vercel/speed-insights/next"
+
 
 export default function Layout({ children }: { children: React.ReactNode }) {
     return (
         <div>
             <NextTopLoader />
+            <SpeedInsights />
             {/* Header/Navbar - Shared */}
             <header className="sticky top-0 z-50">
                 <div className="container mx-auto px-4 py-4 mt-2">
