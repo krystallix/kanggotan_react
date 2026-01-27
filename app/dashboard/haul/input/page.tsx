@@ -40,6 +40,7 @@ export default function InputArwah() {
     const [address, setAddress] = useState<string[]>([])
     const [arwahErrors, setArwahErrors] = useState<{ [key: number]: { greeting?: string, name?: string, address?: string } }>({});
     const [resetKey, setResetKey] = useState(0);
+    const [bulkCount, setBulkCount] = useState<string>("1");
 
     const form = useForm<HaulFormValues>({
         resolver: zodResolver(haulFormSchema),
@@ -84,13 +85,18 @@ export default function InputArwah() {
     }]);
 
     const addArwah = () => {
-        setArwahList([...arwahList, {
-            id: Date.now(),
+        const count = Math.max(1, parseInt(bulkCount) || 1); // Parse saat digunakan
+        const newArwahs = Array.from({ length: count }, () => ({
+            id: Date.now() + Math.random(),
             greeting: '',
             name: '',
             address: ''
-        }]);
+        }));
+
+        setArwahList([...arwahList, ...newArwahs]);
+        setBulkCount("1"); // Reset ke 1 setelah tambah
     };
+
 
     const removeArwah = (id: number) => {
         setArwahList(arwahList.filter(item => item.id !== id));
@@ -296,7 +302,18 @@ export default function InputArwah() {
                                         Data Arwah
                                     </FieldLegend>
                                     <div className="flex gap-2 sm:w-auto">
-                                        <Input type="number" min="1" defaultValue={1} />
+                                        <Input
+                                            type="number"
+                                            min="1"
+                                            value={bulkCount}
+                                            onChange={(e) => setBulkCount(e.target.value)}
+                                            onBlur={(e) => {
+                                                if (!e.target.value || parseInt(e.target.value) < 1) {
+                                                    setBulkCount("1");
+                                                }
+                                            }}
+                                            placeholder="1"
+                                        />
                                         <Button
                                             type="button"
                                             onClick={addArwah}
@@ -394,6 +411,7 @@ export default function InputArwah() {
                                                         type="button"
                                                         variant="ghost"
                                                         size="icon"
+                                                        tabIndex={-1}
                                                         onClick={() => removeArwah(arwah.id)}
                                                         className="hover:bg-red-200 bg-red-50 cursor-pointer text-red-600 hover:text-red-600 shrink-0 self-start"
                                                     >

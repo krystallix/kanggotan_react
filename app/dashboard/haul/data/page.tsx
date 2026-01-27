@@ -91,6 +91,7 @@ export default async function HaulDashboardPage({ searchParams }: PageProps) {
                     years={years}
                     selectedYear={YEAR}
                     totalResults={response?.total}
+                    search={SEARCH}
                 />
 
 

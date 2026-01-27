@@ -204,15 +204,13 @@ function AutoComplete({
 
         switch (e.key) {
             case 'Tab':
-                e.preventDefault();
-                if (e.shiftKey) {
-                    setSelectedIndex(prev =>
-                        prev > 0 ? prev - 1 : suggestions.length - 1
-                    );
+                if (suggestions.length > 0) {
+                    const indexToSelect = selectedIndex >= 0 ? selectedIndex : 0;
+                    handleSelectSuggestion(suggestions[indexToSelect]);
                 } else {
-                    setSelectedIndex(prev =>
-                        prev < suggestions.length - 1 ? prev + 1 : 0
-                    );
+                    setShowPopover(false);
+                    setSuggestions([]);
+                    setSelectedIndex(-1);
                 }
                 break;
 

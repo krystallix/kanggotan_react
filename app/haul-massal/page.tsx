@@ -5,10 +5,14 @@ import HaulTable from "./haul-table";
 import { HaulPagination } from "./haul-pagination";
 import { Suspense } from "react";
 import HaulTableSkeleton from "./haul-table-skeleton";
+import {
+    CloseableAlert
+} from "@/components/alert"
 
 type PageProps = {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
+
 
 async function HaulData({ year, page, pageSize, search }: {
     year: number;
@@ -67,10 +71,25 @@ export default async function HaulMassalPage({ searchParams }: PageProps) {
     return (
         <Layout>
             <>
+                <div className="flex flex-row justify-center">
+                    <div className="py-2 max-w-lg">
+                        <CloseableAlert />
+                    </div>
+                </div>
+
+                {/* <div className="flex gap-2">
+                    <span>
+                        Total Pengirim : soon
+                    </span>
+                    <span>
+                        Total Arwah : soon
+                    </span>
+                </div> */}
                 <HaulFilters
                     years={years}
                     selectedYear={YEAR}
                     totalResults={response?.total}
+                    search={SEARCH}
                 />
 
                 <div className="mt-8">

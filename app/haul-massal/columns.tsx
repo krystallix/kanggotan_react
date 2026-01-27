@@ -3,6 +3,7 @@
 import { HaulType } from "@/types/haul"
 import { ColumnDef } from "@tanstack/react-table"
 import ActionsTable from "@/components/actions/actions-table"
+import { ReportActions } from "@/components/actions/report-actions"
 
 export const HaulColumns: ColumnDef<HaulType>[] = [
   {
@@ -33,6 +34,15 @@ export const HaulColumns: ColumnDef<HaulType>[] = [
   {
     accessorKey: "arwahAddress",
     header: "Makam",
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => {
+
+      return (
+        <ReportActions data={row.original} />
+      )
+    },
   },
 ]
 

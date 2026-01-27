@@ -50,7 +50,7 @@ export default function SearchInput({ totalResults, placeholder = "Cari..." }: S
                     scroll: false
                 });
             });
-        }, 500);
+        }, 1000);
 
         return () => {
             if (timeoutRef.current) {
