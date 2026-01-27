@@ -94,6 +94,15 @@ export const HaulColumnsMobile: ColumnDef<HaulType>[] = [
       )
     },
   },
+  {
+    id: "actions",
+    cell: ({ row }) => {
+
+      return (
+        <ReportActions data={row.original} />
+      )
+    },
+  },
 ]
 
 export const HaulColumnsDashboard: ColumnDef<HaulType>[] = [
