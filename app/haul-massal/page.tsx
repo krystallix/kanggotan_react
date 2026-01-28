@@ -8,6 +8,7 @@ import HaulTableSkeleton from "./haul-table-skeleton";
 import {
     CloseableAlert
 } from "@/components/alert"
+import { getArwahsCount, getSendersCount } from "@/lib/supabase/queries-client";
 
 type PageProps = {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -67,6 +68,8 @@ export default async function HaulMassalPage({ searchParams }: PageProps) {
     );
 
     const response = await getSendersWithArwahs(YEAR, PAGE, PAGESIZE, SEARCH)
+    const sendersCount = await getSendersCount(YEAR)
+    const arwahsCount = await getArwahsCount(YEAR)
 
     return (
         <Layout>
@@ -77,14 +80,14 @@ export default async function HaulMassalPage({ searchParams }: PageProps) {
                     </div>
                 </div>
 
-                {/* <div className="flex gap-2">
+                <div className="flex gap-2">
                     <span>
-                        Total Pengirim : soon
+                        Total Pengirim : {sendersCount}
                     </span>
                     <span>
-                        Total Arwah : soon
+                        Total Arwah : {arwahsCount}
                     </span>
-                </div> */}
+                </div>
                 <HaulFilters
                     years={years}
                     selectedYear={YEAR}

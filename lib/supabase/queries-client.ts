@@ -232,3 +232,38 @@ export async function signOut() {
 
   return { success: true }
 }
+export async function getSendersCount(year: number) {
+  const supabase = createClient()
+
+  const { count, error } = await supabase
+    .schema('db_kanggotan2')
+    .from('senders')
+    .select('*', { count: 'exact', head: true })
+    .gte('created_at', `${year}-01-01`)
+    .lt('created_at', `${year + 1}-01-01`)
+
+  if (error) {
+    console.error('Error counting senders:', error)
+    throw error
+  }
+
+  return count
+}
+
+export async function getArwahsCount(year: number) {
+  const supabase = createClient()
+
+  const { count, error } = await supabase
+    .schema('db_kanggotan2')
+    .from('arwahs')
+    .select('*', { count: 'exact', head: true })
+    .gte('created_at', `${year}-01-01`)
+    .lt('created_at', `${year + 1}-01-01`)
+
+  if (error) {
+    console.error('Error counting arwahs:', error)
+    throw error
+  }
+
+  return count
+}
