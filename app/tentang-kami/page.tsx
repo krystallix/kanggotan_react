@@ -78,20 +78,20 @@ export default function TentangKamiPage() {
                             <div className="grid gap-4 md:grid-cols-2">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle className="text-base">Pendukung Kegiatan Masjid</CardTitle>
+                                        <CardTitle className="text-base font-bold">Pendukung Kegiatan Masjid</CardTitle>
                                     </CardHeader>
                                     <CardContent className="text-sm ">
-                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Mendukung pelaksanaan kegiatan masjid seperti persiapan dan pelayanan pengajian,
+                                        Mendukung pelaksanaan kegiatan masjid seperti persiapan dan pelayanan pengajian,
                                         termasuk pengaturan perlengkapan dan koordinasi teknis bersama Takmir.
                                     </CardContent>
                                 </Card>
 
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle className="text-base">Sosial Masyarakat</CardTitle>
+                                        <CardTitle className="text-base font-bold">Sosial Masyarakat</CardTitle>
                                     </CardHeader>
                                     <CardContent className="text-sm ">
-                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Bakti lingkungan, sinoman, dan kolaborasi kepemudaan
+                                        Bakti lingkungan, sinoman, dan kolaborasi kepemudaan
                                         untuk memperkuat solidaritas warga Kanggotan Lor.
                                     </CardContent>
                                 </Card>
@@ -108,10 +108,10 @@ export default function TentangKamiPage() {
                                 <CardContent className="text-sm ">
                                     <ul className="list-disc pl-4 space-y-1">
                                         <li>Pelindung : Takmir Masjid At-Ta&apos;awun</li>
-                                        <li>Ketua : Febri Faini</li>
-                                        <li>Wakil Ketua : Hera</li>
+                                        <li>Ketua : Andi Dwi</li>
+                                        <li>Wakil Ketua : Hera Aulia</li>
                                         <li>Sekretaris : Annisa Eka</li>
-                                        <li>Bendahara :  Sifa</li>
+                                        <li>Bendahara :  Sifa Della</li>
                                     </ul>
                                     <p className="mt-3">
                                         Struktur dapat disesuaikan dengan arahan Takmir Masjid At-Ta&apos;awun

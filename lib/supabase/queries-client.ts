@@ -1,6 +1,9 @@
 // lib/supabase/queries-client.ts
 import { createClient } from '@/lib/supabase/client'
 import { DeleteArwahResult, DeleteSenderResult } from '@/types/haul'
+import type {
+  KategoriFormValues, KegiatanFormValues, LombaFormValues, PertandinganFormValues, KegiatanWithKategori
+} from '@/types/kegiatan'
 
 export async function getSendersNameDistinct() {
   const supabase = createClient()
@@ -248,6 +251,295 @@ export async function getSendersCount(year: number) {
   }
 
   return count
+}
+
+// ── KEGIATAN KATEGORI CRUD ──
+
+export async function insertKategori(data: KategoriFormValues) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .schema('db_kanggotan2')
+    .from('kegiatan_kategori')
+    .insert({
+      name: data.name,
+      description: data.description || null,
+      icon: data.icon || 'CalendarDays',
+      sort_order: data.sort_order,
+      is_active: data.is_active,
+    })
+  if (error) { console.error('Error insert kategori:', error); throw error }
+  return { success: true }
+}
+
+export async function updateKategori(id: number, data: KategoriFormValues) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .schema('db_kanggotan2')
+    .from('kegiatan_kategori')
+    .update({
+      name: data.name,
+      description: data.description || null,
+      icon: data.icon || 'CalendarDays',
+      sort_order: data.sort_order,
+      is_active: data.is_active,
+    })
+    .eq('id', id)
+  if (error) { console.error('Error update kategori:', error); throw error }
+  return { success: true }
+}
+
+export async function deleteKategori(id: number) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .schema('db_kanggotan2')
+    .from('kegiatan_kategori')
+    .delete()
+    .eq('id', id)
+  if (error) { console.error('Error delete kategori:', error); throw error }
+  return { success: true }
+}
+
+// ── KEGIATAN CRUD ──
+
+export async function insertKegiatan(data: KegiatanFormValues) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .schema('db_kanggotan2')
+    .from('kegiatan')
+    .insert({
+      kategori_id: data.kategori_id,
+      title: data.title,
+      description: data.description || null,
+      date: data.date,
+      year: data.year,
+      is_published: data.is_published,
+    })
+  if (error) { console.error('Error insert kegiatan:', error); throw error }
+  return { success: true }
+}
+
+export async function updateKegiatan(id: number, data: KegiatanFormValues) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .schema('db_kanggotan2')
+    .from('kegiatan')
+    .update({
+      kategori_id: data.kategori_id,
+      title: data.title,
+      description: data.description || null,
+      date: data.date,
+      year: data.year,
+      is_published: data.is_published,
+    })
+    .eq('id', id)
+  if (error) { console.error('Error update kegiatan:', error); throw error }
+  return { success: true }
+}
+
+export async function deleteKegiatan(id: number) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .schema('db_kanggotan2')
+    .from('kegiatan')
+    .delete()
+    .eq('id', id)
+  if (error) { console.error('Error delete kegiatan:', error); throw error }
+  return { success: true }
+}
+
+// ── LOMBA CRUD ──
+
+export async function insertLomba(data: LombaFormValues) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .schema('db_kanggotan2')
+    .from('lomba')
+    .insert({
+      kegiatan_id: data.kegiatan_id,
+      nama: data.nama,
+      deskripsi: data.deskripsi || null,
+      tanggal: data.tanggal || null,
+      jam: data.jam || null,
+      pic_nama: data.pic_nama,
+      pic_kontak: data.pic_kontak || null,
+      sort_order: data.sort_order,
+      has_pertandingan: data.has_pertandingan,
+    })
+  if (error) { console.error('Error insert lomba:', error); throw error }
+  return { success: true }
+}
+
+export async function updateLomba(id: number, data: LombaFormValues) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .schema('db_kanggotan2')
+    .from('lomba')
+    .update({
+      kegiatan_id: data.kegiatan_id,
+      nama: data.nama,
+      deskripsi: data.deskripsi || null,
+      tanggal: data.tanggal || null,
+      jam: data.jam || null,
+      pic_nama: data.pic_nama,
+      pic_kontak: data.pic_kontak || null,
+      sort_order: data.sort_order,
+      has_pertandingan: data.has_pertandingan,
+    })
+    .eq('id', id)
+  if (error) { console.error('Error update lomba:', error); throw error }
+  return { success: true }
+}
+
+export async function deleteLomba(id: number) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .schema('db_kanggotan2')
+    .from('lomba')
+    .delete()
+    .eq('id', id)
+  if (error) { console.error('Error delete lomba:', error); throw error }
+  return { success: true }
+}
+
+// ── PERTANDINGAN CRUD ──
+
+export async function insertPertandingan(data: PertandinganFormValues) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .schema('db_kanggotan2')
+    .from('pertandingan')
+    .insert({
+      lomba_id: data.lomba_id,
+      tim_a: data.tim_a,
+      tim_b: data.tim_b,
+      babak: data.babak,
+      tanggal: data.tanggal || null,
+      jam: data.jam || null,
+      lokasi: data.lokasi || null,
+      skor_a: data.skor_a ?? null,
+      skor_b: data.skor_b ?? null,
+      status: data.status,
+      sort_order: data.sort_order,
+    })
+  if (error) { console.error('Error insert pertandingan:', error); throw error }
+  return { success: true }
+}
+
+export async function updatePertandingan(id: number, data: PertandinganFormValues) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .schema('db_kanggotan2')
+    .from('pertandingan')
+    .update({
+      lomba_id: data.lomba_id,
+      tim_a: data.tim_a,
+      tim_b: data.tim_b,
+      babak: data.babak,
+      tanggal: data.tanggal || null,
+      jam: data.jam || null,
+      lokasi: data.lokasi || null,
+      skor_a: data.skor_a ?? null,
+      skor_b: data.skor_b ?? null,
+      status: data.status,
+      sort_order: data.sort_order,
+    })
+    .eq('id', id)
+  if (error) { console.error('Error update pertandingan:', error); throw error }
+  return { success: true }
+}
+
+export async function deletePertandingan(id: number) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .schema('db_kanggotan2')
+    .from('pertandingan')
+    .delete()
+    .eq('id', id)
+  if (error) { console.error('Error delete pertandingan:', error); throw error }
+  return { success: true }
+}
+
+// ── CLIENT-SIDE FETCH HELPERS ──
+
+export async function getKategoriAllClient() {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .schema('db_kanggotan2')
+    .from('kegiatan_kategori')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+  if (error) { console.error('Error:', error); return [] }
+  return data || []
+}
+
+export async function getKegiatanByYearClient(year: number, kategoriId?: number) {
+  const supabase = createClient()
+  let query = supabase
+    .schema('db_kanggotan2')
+    .from('kegiatan')
+    .select('*, kegiatan_kategori!inner(name, icon)')
+    .eq('year', year)
+    .eq('is_published', true)
+    .order('date', { ascending: true })
+  if (kategoriId) query = query.eq('kategori_id', kategoriId)
+  const { data, error } = await query
+  if (error) { console.error('Error:', error); return [] }
+  return (data || []).map((item) => {
+    const row = item as KegiatanWithKategori & { kegiatan_kategori: { name: string; icon: string } }
+    return { ...row, kategori_name: row.kegiatan_kategori.name, kategori_icon: row.kegiatan_kategori.icon }
+  })
+}
+
+export async function getAllLombaPaginatedClient(page = 1, pageSize = 100, kegiatanId?: number) {
+  const supabase = createClient()
+  const offset = (page - 1) * pageSize
+  let query = supabase
+    .schema('db_kanggotan2')
+    .from('lomba')
+    .select('*, kegiatan(title)', { count: 'exact' })
+    .order('sort_order', { ascending: true })
+  if (kegiatanId) query = query.eq('kegiatan_id', kegiatanId)
+  const { data, error, count } = await query.range(offset, offset + pageSize - 1)
+  if (error) { console.error('Error:', error); return { data: [], total: 0 } }
+  return { data: data || [], total: count || 0 }
+}
+
+export async function getAllKegiatanPaginatedClient(
+  page = 1, pageSize = 100, year?: number, kategoriId?: number
+) {
+  const supabase = createClient()
+  const offset = (page - 1) * pageSize
+  let query = supabase
+    .schema('db_kanggotan2')
+    .from('kegiatan')
+    .select('*, kegiatan_kategori(name, icon)', { count: 'exact' })
+    .order('date', { ascending: false })
+  if (year) query = query.eq('year', year)
+  if (kategoriId) query = query.eq('kategori_id', kategoriId)
+  const { data, error, count } = await query.range(offset, offset + pageSize - 1)
+  if (error) { console.error('Error:', error); return { data: [], total: 0 } }
+  return {
+    data: (data || []).map((item) => {
+      const row = item as KegiatanWithKategori & { kegiatan_kategori: { name: string } }
+      return { ...row, kategori_name: row.kegiatan_kategori.name }
+    }),
+    total: count || 0,
+  }
+}
+
+export async function getAllPertandinganPaginatedClient(page = 1, pageSize = 100, lombaId?: number) {
+  const supabase = createClient()
+  const offset = (page - 1) * pageSize
+  let query = supabase
+    .schema('db_kanggotan2')
+    .from('pertandingan')
+    .select('*, lomba(nama)', { count: 'exact' })
+    .order('sort_order', { ascending: true })
+  if (lombaId) query = query.eq('lomba_id', lombaId)
+  const { data, error, count } = await query.range(offset, offset + pageSize - 1)
+  if (error) { console.error('Error:', error); return { data: [], total: 0 } }
+  return { data: data || [], total: count || 0 }
 }
 
 export async function getArwahsCount(year: number) {
