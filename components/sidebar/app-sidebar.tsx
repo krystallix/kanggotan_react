@@ -89,8 +89,27 @@ const data = {
         },
         {
             title: "Kegiatan",
-            url: "/dashboard/kegiatan",  // Tambahkan /dashboard
+            url: "/dashboard/kegiatan",
             icon: Activity,
+            isActive: true,
+            items: [
+                {
+                    title: "Input Kegiatan",
+                    url: "/dashboard/kegiatan/input",
+                },
+                {
+                    title: "Kategori",
+                    url: "/dashboard/kegiatan/kategori",
+                },
+                {
+                    title: "Lomba",
+                    url: "/dashboard/kegiatan/lomba",
+                },
+                {
+                    title: "Pertandingan",
+                    url: "/dashboard/kegiatan/pertandingan",
+                },
+            ],
         },
     ],
     navSecondary: [

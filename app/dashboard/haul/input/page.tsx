@@ -331,7 +331,7 @@ export default function InputArwah() {
                                             className="relative border-2 rounded-lg p-3 md:p-5 my-4"
                                         >
                                             <div className="flex flex-col sm:flex-row sm:items-start gap-3">
-                                                <div className="w-8 h-8 bg-lime-100 rounded-full flex items-center justify-center text-sm font-semibold shrink-0">
+                                                <div className="w-8 h-8 bg-primary/10 text-primary rounded-full flex items-center justify-center text-sm font-semibold shrink-0">
                                                     {index + 1}
                                                 </div>
 
