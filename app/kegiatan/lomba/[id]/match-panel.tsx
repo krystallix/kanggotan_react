@@ -48,7 +48,7 @@ export function MatchPanel({
 
   return (
     <section className="rounded-xl border border-border bg-card overflow-hidden transition-all duration-300">
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+      <div className="flex items-center justify-between px-4 py-3">
         <h2 className="font-semibold text-sm">{title}</h2>
         {allMatches.length > matches.length && (
           <Button
@@ -75,9 +75,15 @@ export function MatchPanel({
               </div>
               <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center">
                 <p className="truncate text-left font-semibold">{displayTeam(match.tim_a)}</p>
-                <div className="min-w-14 rounded-md border border-border px-2 py-1 text-xs font-bold tabular-nums">
-                  {match.skor_a === null || match.skor_b === null ? "VS" : `${match.skor_a}–${match.skor_b}`}
-                </div>
+                {match.status === "selesai" || (match.skor_a !== null && match.skor_b !== null) ? (
+                  <div className="text-xl md:text-2xl font-black tabular-nums px-3">
+                    {match.skor_a} - {match.skor_b}
+                  </div>
+                ) : (
+                  <div className="min-w-14 rounded-lg bg-foreground px-2.5 py-1 text-xs font-black tabular-nums text-background shadow-[inset_0_0_0_1px_rgba(255,255,255,0.16)]">
+                    VS
+                  </div>
+                )}
                 <p className="truncate text-right font-semibold">{displayTeam(match.tim_b)}</p>
               </div>
               <div className="mt-3 flex items-center justify-between gap-3">

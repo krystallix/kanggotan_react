@@ -15,6 +15,7 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createClient } from "@/lib/supabase/client"
 import { DatePickerField } from "@/components/date-picker-field"
+import { SponsorManager } from "./sponsor-manager"
 
 export default function InputKegiatan() {
   const router = useRouter()
@@ -112,8 +113,8 @@ export default function InputKegiatan() {
           </div>
         </div>
 
-        <div className="max-w-2xl">
-          <Card className="border-border/50 shadow-sm">
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1.5fr] gap-8 items-start">
+          <Card className="border-border/50 shadow-sm w-full">
             <CardContent className="p-6 md:p-8">
               <form onSubmit={handleSubmit}>
                 <FieldGroup className="gap-6">
@@ -182,6 +183,16 @@ export default function InputKegiatan() {
               </form>
             </CardContent>
           </Card>
+
+          {editId ? (
+            <SponsorManager kegiatanId={Number(editId)} />
+          ) : (
+            <Card className="border-border/50 shadow-sm bg-muted/10">
+              <CardContent className="p-6 text-center text-muted-foreground text-sm">
+                Sponsor dapat ditambahkan setelah kegiatan berhasil disimpan.
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </DashLayout>

@@ -35,12 +35,12 @@ export default async function KegiatanPage({ searchParams }: PageProps) {
         {/* Filters */}
         <div className="flex flex-wrap gap-3 mb-8">
           {/* Year filter */}
-          <div className="flex gap-1">
+          <div className="flex gap-1.5">
             {years.map((y) => (
               <Link
                 key={y}
                 href={KATEGORI ? `?year=${y}&kategori=${KATEGORI}` : `?year=${y}`}
-                className={`px-4 py-2 text-sm rounded-lg border transition-colors ${y === YEAR ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-border hover:border-primary'}`}
+                className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 ${y === YEAR ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
               >
                 {y}
               </Link>
@@ -48,10 +48,10 @@ export default async function KegiatanPage({ searchParams }: PageProps) {
           </div>
 
           {/* Kategori filter */}
-          <div className="flex gap-1 flex-wrap">
+          <div className="flex gap-1.5 flex-wrap">
             <Link
               href={`?year=${YEAR}`}
-              className={`px-4 py-2 text-sm rounded-lg border transition-colors ${!KATEGORI ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-border hover:border-primary'}`}
+              className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 ${!KATEGORI ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
             >
               Semua
             </Link>
@@ -59,7 +59,7 @@ export default async function KegiatanPage({ searchParams }: PageProps) {
               <Link
                 key={k.id}
                 href={`?year=${YEAR}&kategori=${k.id}`}
-                className={`px-4 py-2 text-sm rounded-lg border transition-colors ${KATEGORI === k.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-border hover:border-primary'}`}
+                className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 ${KATEGORI === k.id ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
               >
                 {k.name}
               </Link>

@@ -2,7 +2,7 @@
 import { createClient } from '@/lib/supabase/client'
 import { DeleteArwahResult, DeleteSenderResult } from '@/types/haul'
 import type {
-  KategoriFormValues, KegiatanFormValues, LombaFormValues, PertandinganFormValues, KegiatanWithKategori
+  KategoriFormValues, KegiatanFormValues, LombaFormValues, PertandinganFormValues, KegiatanWithKategori, Sponsor, SponsorFormValues
 } from '@/types/kegiatan'
 
 export async function getSendersNameDistinct() {
@@ -558,4 +558,85 @@ export async function getArwahsCount(year: number) {
   }
 
   return count
+}
+
+// ── SPONSOR CRUD ──
+
+export async function getSponsorsByKegiatanIdClient(kegiatanId: number): Promise<Sponsor[]> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .schema('db_kanggotan2')
+    .from('sponsor')
+    .select('*')
+    .eq('kegiatan_id', kegiatanId)
+
+  if (error) {
+    console.error('Error fetching sponsors client:', error)
+    throw error
+  }
+  return data || []
+}
+
+export async function insertSponsor(data: SponsorFormValues) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .schema('db_kanggotan2')
+    .from('sponsor')
+    .insert({
+      kegiatan_id: data.kegiatan_id,
+      nama: data.nama,
+      logo_url: data.logo_url || null,
+      lokasi_url: data.lokasi_url || null,
+      sosmed_url: data.sosmed_url || null,
+      deskripsi: data.deskripsi || null,
+    })
+  if (error) { console.error('Error insert sponsor:', error); throw error }
+  return { success: true }
+}
+
+export async function updateSponsor(id: number, data: Partial<SponsorFormValues>) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .schema('db_kanggotan2')
+    .from('sponsor')
+    .update({
+      nama: data.nama,
+      logo_url: data.logo_url,
+      lokasi_url: data.lokasi_url,
+      sosmed_url: data.sosmed_url,
+      deskripsi: data.deskripsi,
+    })
+    .eq('id', id)
+  if (error) { console.error('Error update sponsor:', error); throw error }
+  return { success: true }
+}
+
+export async function deleteSponsor(id: number) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .schema('db_kanggotan2')
+    .from('sponsor')
+    .delete()
+    .eq('id', id)
+  if (error) { console.error('Error delete sponsor:', error); throw error }
+  return { success: true }
+}
+
+export async function uploadSponsorLogo(file: File) {
+  const supabase = createClient()
+  const fileExt = file.name.split('.').pop()
+  const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
+  const filePath = `${fileName}`
+
+  const { error: uploadError } = await supabase.storage
+    .from('sponsors')
+    .upload(filePath, file)
+
+  if (uploadError) {
+    console.error('Error uploading logo:', uploadError)
+    throw uploadError
+  }
+
+  const { data } = supabase.storage.from('sponsors').getPublicUrl(filePath)
+  return data.publicUrl
 }
