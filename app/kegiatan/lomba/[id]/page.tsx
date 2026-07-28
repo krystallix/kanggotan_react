@@ -1,9 +1,23 @@
 import Layout from "@/components/layout/home-layout"
 import { getPertandinganByLombaId } from "@/lib/supabase/queries-server"
 import { createClient } from "@/lib/supabase/server"
+import { Button } from "@/components/ui/button"
 import { CalendarDays, Clock, Users } from "lucide-react"
-import Link from "next/link"
 import { notFound } from "next/navigation"
+
+const formatDate = (date: string | null) => {
+  if (!date) return "TBA"
+  return new Date(date + "T00:00:00").toLocaleDateString("id-ID", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "Asia/Jakarta",
+  })
+}
+
+const formatTime = (time: string | null) => `${time?.slice(0, 5) || "TBA"} WIB`
+const displayTeam = (team: string) => ["TBD", "TBA"].includes(team.toUpperCase()) ? "Menunggu finalis" : team
 
 type PageProps = {
   params: Promise<{ id: string }>
@@ -26,149 +40,202 @@ export default async function LombaDetailPage({ params }: PageProps) {
   if (!lomba) notFound()
 
   const pertandingan = await getPertandinganByLombaId(lombaId)
-  const today = new Date().toISOString().split("T")[0]
-  const grouped = pertandingan.reduce<Record<string, typeof pertandingan>>((acc, item) => {
-    const key = item.tanggal || "Tanpa tanggal"
-    acc[key] = [...(acc[key] || []), item]
-    return acc
-  }, {})
+  const upcomingMatches = pertandingan.filter((p) => p.status !== "selesai").slice(0, 4)
+  const recentMatches = pertandingan.filter((p) => p.status === "selesai").slice(-4).reverse()
+  const teams = Array.from(new Set(pertandingan.flatMap((p) => [p.tim_a, p.tim_b])))
+    .filter((team) => team && !["TBD", "TBA"].includes(team.toUpperCase()))
+  const standings = teams.map((team) => {
+    const matches = pertandingan.filter(
+      (p) => displayTeam(p.tim_a) === team || displayTeam(p.tim_b) === team
+    )
+
+    const { menang, kalah, main, poin } = matches.reduce(
+      (acc, match) => {
+        const isA = displayTeam(match.tim_a) === team
+        const skorA = isA ? match.skor_a : match.skor_b
+        const skorB = isA ? match.skor_b : match.skor_a
+
+        if (skorA !== null && skorB !== null) {
+          acc.main += 1
+          if (skorA === 3 && skorB < skorA) {
+            acc.menang += 1
+            acc.poin += 3
+          } else if (skorA === 3 && skorB === 2) {
+            acc.menang += 1
+            acc.poin += 2
+          } else if (skorA === 2 && skorB === 3) {
+            acc.kalah += 1
+            acc.poin += 1
+          } else if (skorA < 2) {
+            acc.kalah += 1
+          }
+        }
+        return acc
+      },
+      { menang: 0, kalah: 0, main: 0, poin: 0 }
+    )
+
+    return {
+      team,
+      main,
+      menang,
+      kalah,
+      poin,
+    }
+  })
+
+  standings.sort((a, b) =>
+    b.poin === a.poin
+      ? b.menang === a.menang
+        ? headToHead(a.team, b.team, pertandingan)
+        : b.menang - a.menang
+      : b.poin - a.poin
+  )
+
+  function headToHead(teamA: string, teamB: string, matches: Match[]): number {
+    const relevantMatches = matches.filter(
+      (m) =>
+        (displayTeam(m.tim_a) === teamA && displayTeam(m.tim_b) === teamB) ||
+        (displayTeam(m.tim_a) === teamB && displayTeam(m.tim_b) === teamA)
+    )
+    const result = relevantMatches.reduce(
+      (acc, match) => {
+        if (match.skor_a !== null && match.skor_b !== null) {
+          const isATeamA = displayTeam(match.tim_a) === teamA
+          const [skorA, skorB] = isATeamA
+            ? [match.skor_a, match.skor_b]
+            : [match.skor_b, match.skor_a]
+
+          if (skorA > skorB) acc += 1
+          else acc -= 1
+        }
+        return acc
+      },
+      0
+    )
+    return result === 0 ? 0 : result > 0 ? -1 : 1
+  }
+
 
   return (
     <Layout>
-      <div className="min-h-screen bg-white">
-
-        {/* ── HERO HEADER – compact, no card ──────────────────── */}
-        <div className="max-w-5xl mx-auto px-4 pt-8 pb-6">
-          {/* Sub-label */}
-          <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-red-600 mb-1">
+      <div className="py-10">
+        <section className="mb-8 border-b border-border pb-6">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
             {lomba.kegiatan?.title}
           </p>
-
-          {/* Title */}
-          <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tight leading-none text-gray-900 mb-3">
-            {lomba.nama}
-          </h1>
-
-          {/* Meta row */}
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-gray-500">
+          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{lomba.nama}</h1>
+          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
             {lomba.tanggal && (
               <span className="inline-flex items-center gap-1.5">
-                <CalendarDays className="size-3.5 text-red-600" />
-                {new Date(lomba.tanggal + "T00:00:00").toLocaleDateString("id-ID", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
+                <CalendarDays className="size-4 text-primary" />
+                {formatDate(lomba.tanggal)}
               </span>
             )}
             {lomba.jam && (
               <span className="inline-flex items-center gap-1.5">
-                <Clock className="size-3.5 text-red-600" />
-                {lomba.jam.slice(0, 5)} WIB
+                <Clock className="size-4 text-primary" />
+                {formatTime(lomba.jam)}
               </span>
             )}
             {lomba.pic_nama && (
               <span className="inline-flex items-center gap-1.5">
-                <Users className="size-3.5 text-red-600" />
+                <Users className="size-4 text-primary" />
                 {lomba.pic_nama}
               </span>
             )}
           </div>
+        </section>
 
-          {/* Divider */}
-          <div className="mt-5 h-px bg-gray-200" />
-        </div>
-
-        {/* ── SCHEDULE SECTION ────────────────────────────────── */}
-        <div className="max-w-5xl mx-auto px-4 pt-6 pb-16">
-          {pertandingan.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {Object.entries(grouped).map(([tanggal, items]) => {
-                const isToday = tanggal === today
-                const dateLabel =
-                  tanggal === "Tanpa tanggal"
-                    ? "Tanpa tanggal"
-                    : new Date(tanggal + "T00:00:00").toLocaleDateString("id-ID", {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })
-
-                return (
-                  <section
-                    key={tanggal}
-                    className={[
-                      "overflow-hidden rounded-lg border bg-white",
-                      isToday
-                        ? "border-red-500 shadow-[0_8px_24px_-6px_rgba(220,38,38,0.2)]"
-                        : "border-gray-200 shadow-sm",
-                    ].join(" ")}
-                  >
-                    {/* Date header */}
-                    <div
-                      className={[
-                        "px-4 py-2.5 text-center",
-                        isToday ? "bg-red-600" : "bg-gray-200",
-                      ].join(" ")}
-                    >
-                      <p
-                        className={[
-                          "text-[11px] font-black uppercase tracking-[0.2em]",
-                          isToday ? "text-white" : "text-gray-600",
-                        ].join(" ")}
-                      >
-                        {dateLabel}
-                      </p>
-                    </div>
-
-                    {/* Match rows */}
-                    <div className="px-4 pb-4 pt-3 space-y-2.5">
-                      {items.map((p) => (
-                        <article
-                          key={p.id}
-                          className="grid items-center gap-2"
-                          style={{ gridTemplateColumns: "minmax(0,1fr) 4.5rem minmax(0,1fr)" }}
-                        >
-                          {/* Team A */}
-                          <p className="truncate text-base font-black leading-none text-gray-900 tracking-tight">
-                            {p.tim_a}
-                          </p>
-
-                          {/* VS / Score column */}
-                          <div className="flex flex-col items-center gap-0">
-                            <span className="text-[9px] font-semibold text-gray-800 uppercase tracking-wider">
-                              {p.jam?.slice(0, 5) || "TBA"}
-                            </span>
-                            <strong className="text-lg font-black leading-none text-red-600 tabular-nums tracking-tight">
-                              {p.skor_a === null ? "VS" : `${p.skor_a}–${p.skor_b}`}
-                            </strong>
-                            <span className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">
-                              {p.babak}
-                            </span>
-                          </div>
-
-                          {/* Team B */}
-                          <p className="truncate text-base font-black leading-none text-right text-gray-900 tracking-tight">
-                            {p.tim_b}
-                          </p>
-                        </article>
-                      ))}
-                    </div>
-                  </section>
-                )
-              })}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="mb-4 flex items-center justify-center w-16 h-16 rounded-lg bg-gray-100">
-                <span className="text-2xl text-gray-300">🏆</span>
+        <section className="grid gap-6 lg:grid-cols-[7fr_3fr]">
+          <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+              <div>
+                <h2 className="font-semibold">Klasemen</h2>
+                <p className="text-xs text-muted-foreground"></p>
               </div>
-              <p className="font-medium text-gray-400">Belum ada jadwal pertandingan.</p>
             </div>
-          )}
-        </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50 text-xs uppercase tracking-wider text-muted-foreground">
+                  <tr>
+                    <th className="w-12 px-4 py-3 text-left">#</th>
+                    <th className="min-w-44 px-4 py-3 text-left">Tim</th>
+                    <th className="px-4 py-3 text-center">M</th>
+                    <th className="px-4 py-3 text-center">W</th>
+                    <th className="px-4 py-3 text-center">D</th>
+                    <th className="px-4 py-3 text-center">L</th>
+                    <th className="px-4 py-3 text-center">Poin</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {standings.length > 0 ? standings.map((row, index) => (
+                    <tr key={row.team} className="hover:bg-muted/30">
+                      <td className="px-4 py-4 font-medium text-muted-foreground">{index + 1}</td>
+                      <td className="px-4 py-4 font-semibold">{row.team}</td>
+                      <td className="px-4 py-4 text-center tabular-nums">{row.main}</td>
+                      <td className="px-4 py-4 text-center tabular-nums">{row.menang}</td>
+                      <td className="px-4 py-4 text-center tabular-nums">{row.seri}</td>
+                      <td className="px-4 py-4 text-center tabular-nums">{row.kalah}</td>
+                      <td className="px-4 py-4 text-center font-bold tabular-nums">{row.poin}</td>
+                    </tr>
+                  )) : (
+                    <tr>
+                      <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
+                        Belum ada tim untuk klasemen.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <aside className="grid gap-6">
+            <MatchPanel title="Upcoming Matches" matches={upcomingMatches} empty="Belum ada pertandingan mendatang." actionLabel="Lihat pertandingan selanjutnya" />
+            <MatchPanel title="Recent Matches" matches={recentMatches} empty="Belum ada hasil pertandingan." actionLabel="Lihat semua pertandingan" />
+          </aside>
+        </section>
       </div>
     </Layout>
+  )
+}
+
+type Match = Awaited<ReturnType<typeof getPertandinganByLombaId>>[number]
+
+function MatchPanel({ title, matches, empty, actionLabel }: { title: string; matches: Match[]; empty: string; actionLabel: string }) {
+  return (
+    <section className="rounded-xl border border-border bg-card overflow-hidden">
+      <div className="border-b border-border px-4 py-3">
+        <h2 className="font-semibold text-sm">{title}</h2>
+      </div>
+      <div className="divide-y divide-border">
+        {matches.length > 0 ? matches.map((match) => (
+          <article key={match.id} className="p-4">
+            <div className="mb-3 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+              <span>{formatDate(match.tanggal)}</span>
+              <span>{formatTime(match.jam)}</span>
+            </div>
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center">
+              <p className="truncate text-left font-semibold">{displayTeam(match.tim_a)}</p>
+              <div className="min-w-14 rounded-md border border-border px-2 py-1 text-xs font-bold tabular-nums">
+                {match.skor_a === null || match.skor_b === null ? "VS" : `${match.skor_a}–${match.skor_b}`}
+              </div>
+              <p className="truncate text-right font-semibold">{displayTeam(match.tim_b)}</p>
+            </div>
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <span className="text-xs text-muted-foreground">{match.babak}</span>
+            </div>
+          </article>
+        )) : (
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">{empty}</p>
+        )}
+      </div>
+      <div className="flex justify-end gap-2 items-center border-t border-border p-3">
+        <Button size="sm" variant="outline">
+          {actionLabel}
+        </Button>
+      </div>
+    </section>
   )
 }
