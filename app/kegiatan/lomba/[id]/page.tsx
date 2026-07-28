@@ -2,8 +2,9 @@ import Layout from "@/components/layout/home-layout"
 import { getPertandinganByLombaId } from "@/lib/supabase/queries-server"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
-import { CalendarDays, Clock, Users } from "lucide-react"
+import { CalendarDays, Clock, Users, ArrowRight } from "lucide-react"
 import { notFound } from "next/navigation"
+import { MatchPanel } from "./match-panel"
 
 const formatDate = (date: string | null) => {
   if (!date) return "TBA"
@@ -49,7 +50,7 @@ export default async function LombaDetailPage({ params }: PageProps) {
       (p) => displayTeam(p.tim_a) === team || displayTeam(p.tim_b) === team
     )
 
-    const { menang, kalah, main, poin } = matches.reduce(
+      const { menang, kalah, main, poin, seri } = matches.reduce(
       (acc, match) => {
         const isA = displayTeam(match.tim_a) === team
         const skorA = isA ? match.skor_a : match.skor_b
@@ -57,7 +58,7 @@ export default async function LombaDetailPage({ params }: PageProps) {
 
         if (skorA !== null && skorB !== null) {
           acc.main += 1
-          if (skorA === 3 && skorB < skorA) {
+          if (skorA === 3 && skorB < 2) {
             acc.menang += 1
             acc.poin += 3
           } else if (skorA === 3 && skorB === 2) {
@@ -72,7 +73,7 @@ export default async function LombaDetailPage({ params }: PageProps) {
         }
         return acc
       },
-      { menang: 0, kalah: 0, main: 0, poin: 0 }
+      { menang: 0, kalah: 0, main: 0, poin: 0, seri: 0 }
     )
 
     return {
@@ -81,6 +82,7 @@ export default async function LombaDetailPage({ params }: PageProps) {
       menang,
       kalah,
       poin,
+      seri,
     }
   })
 
@@ -192,8 +194,8 @@ export default async function LombaDetailPage({ params }: PageProps) {
           </div>
 
           <aside className="grid gap-6">
-            <MatchPanel title="Upcoming Matches" matches={upcomingMatches} empty="Belum ada pertandingan mendatang." actionLabel="Lihat pertandingan selanjutnya" />
-            <MatchPanel title="Recent Matches" matches={recentMatches} empty="Belum ada hasil pertandingan." actionLabel="Lihat semua pertandingan" />
+            <MatchPanel title="Recent Matches" matches={recentMatches} allMatches={pertandingan.filter((p) => p.status === "selesai").reverse()} empty="Belum ada hasil pertandingan." actionLabel="Lihat semua pertandingan" />
+            <MatchPanel title="Upcoming Matches" matches={upcomingMatches} allMatches={pertandingan.filter((p) => p.status !== "selesai")} empty="Belum ada pertandingan mendatang." actionLabel="Lihat pertandingan selanjutnya" />
           </aside>
         </section>
       </div>
@@ -202,40 +204,3 @@ export default async function LombaDetailPage({ params }: PageProps) {
 }
 
 type Match = Awaited<ReturnType<typeof getPertandinganByLombaId>>[number]
-
-function MatchPanel({ title, matches, empty, actionLabel }: { title: string; matches: Match[]; empty: string; actionLabel: string }) {
-  return (
-    <section className="rounded-xl border border-border bg-card overflow-hidden">
-      <div className="border-b border-border px-4 py-3">
-        <h2 className="font-semibold text-sm">{title}</h2>
-      </div>
-      <div className="divide-y divide-border">
-        {matches.length > 0 ? matches.map((match) => (
-          <article key={match.id} className="p-4">
-            <div className="mb-3 flex items-center justify-between gap-3 text-xs text-muted-foreground">
-              <span>{formatDate(match.tanggal)}</span>
-              <span>{formatTime(match.jam)}</span>
-            </div>
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center">
-              <p className="truncate text-left font-semibold">{displayTeam(match.tim_a)}</p>
-              <div className="min-w-14 rounded-md border border-border px-2 py-1 text-xs font-bold tabular-nums">
-                {match.skor_a === null || match.skor_b === null ? "VS" : `${match.skor_a}–${match.skor_b}`}
-              </div>
-              <p className="truncate text-right font-semibold">{displayTeam(match.tim_b)}</p>
-            </div>
-            <div className="mt-3 flex items-center justify-between gap-3">
-              <span className="text-xs text-muted-foreground">{match.babak}</span>
-            </div>
-          </article>
-        )) : (
-          <p className="px-4 py-8 text-center text-sm text-muted-foreground">{empty}</p>
-        )}
-      </div>
-      <div className="flex justify-end gap-2 items-center border-t border-border p-3">
-        <Button size="sm" variant="outline">
-          {actionLabel}
-        </Button>
-      </div>
-    </section>
-  )
-}
