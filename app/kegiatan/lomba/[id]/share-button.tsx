@@ -22,15 +22,16 @@ export function ShareButton({ title }: { title: string }) {
       const dataUrl = await toJpeg(element, {
         quality: 0.95,
         backgroundColor: "#09090b", // Background zinc-950 biar pas
-        filter: (node) => {
-          return !(node instanceof HTMLElement && node.classList.contains("no-share-capture"))
-        },
         style: {
+          background: "#09090b", // Paksakan background style agar tidak transparan/hitam
           transform: "scale(1)",
           transformOrigin: "top left",
           width: element.offsetWidth + "px",
           height: element.offsetHeight + "px",
-        }
+        },
+        filter: (node) => {
+          return !(node instanceof HTMLElement && node.classList.contains("no-share-capture"))
+        },
       })
 
       const blob = await (await fetch(dataUrl)).blob()
