@@ -81,7 +81,7 @@ export default async function LombaDetailPage({ params }: PageProps) {
       }
     })
 
-    const { menang, kalah, main, poin, seri } = matches.reduce(
+    const { menang, kalah, main, poin, seri, tw, tl } = matches.reduce(
       (acc, match) => {
         const isA = displayTeam(match.tim_a) === team
         const skorA = isA ? match.skor_a : match.skor_b
@@ -89,6 +89,8 @@ export default async function LombaDetailPage({ params }: PageProps) {
 
         if (skorA !== null && skorB !== null) {
           acc.main += 1
+          acc.tw += skorA
+          acc.tl += skorB
           if (skorA === 3 && skorB < 2) {
             acc.menang += 1
             acc.poin += 3
@@ -104,7 +106,7 @@ export default async function LombaDetailPage({ params }: PageProps) {
         }
         return acc
       },
-      { menang: 0, kalah: 0, main: 0, poin: 0, seri: 0 }
+      { menang: 0, kalah: 0, main: 0, poin: 0, seri: 0, tw: 0, tl: 0 }
     )
 
     return {
@@ -114,7 +116,9 @@ export default async function LombaDetailPage({ params }: PageProps) {
       kalah,
       poin,
       seri,
-      history: history.slice(-5), // Get last 5 matches
+      tw,
+      tl,
+      history: history.slice(-5),
     }
   })
 
@@ -201,8 +205,10 @@ export default async function LombaDetailPage({ params }: PageProps) {
                     <th className="w-12 px-4 py-3.5 text-left">#</th>
                     <th className="min-w-44 px-4 py-3.5 text-left">Tim</th>
                     <th className="px-4 py-3.5 text-center">M</th>
-                    <th className="px-4 py-3.5 text-center hidden sm:table-cell">W</th>
-                    <th className="px-4 py-3.5 text-center hidden sm:table-cell">L</th>
+                    <th className="px-4 py-3.5 text-center">W</th>
+                    <th className="px-4 py-3.5 text-center">L</th>
+                    <th className="px-4 py-3.5 text-center">TW</th>
+                    <th className="px-4 py-3.5 text-center">TL</th>
                     <th className="px-4 py-3.5 text-center">Form</th>
                     <th className="px-4 py-3.5 text-center">Poin</th>
                   </tr>
@@ -237,8 +243,10 @@ export default async function LombaDetailPage({ params }: PageProps) {
                           </div>
                         </td>
                         <td className="px-4 py-4 text-center tabular-nums font-medium">{row.main}</td>
-                        <td className="px-4 py-4 text-center tabular-nums text-muted-foreground hidden sm:table-cell">{row.menang}</td>
-                        <td className="px-4 py-4 text-center tabular-nums text-muted-foreground hidden sm:table-cell">{row.kalah}</td>
+                        <td className="px-4 py-4 text-center tabular-nums text-muted-foreground">{row.menang}</td>
+                        <td className="px-4 py-4 text-center tabular-nums text-muted-foreground">{row.kalah}</td>
+                        <td className="px-4 py-4 text-center tabular-nums text-emerald-600 dark:text-emerald-400 font-medium">{row.tw}</td>
+                        <td className="px-4 py-4 text-center tabular-nums text-red-500 font-medium">{row.tl}</td>
                         <td className="px-4 py-4">
                           <div className="flex items-center justify-center gap-1">
                             {row.history.length > 0 ? (
@@ -265,7 +273,7 @@ export default async function LombaDetailPage({ params }: PageProps) {
                     );
                   }) : (
                     <tr>
-                      <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
+                      <td colSpan={9} className="px-4 py-12 text-center text-muted-foreground">
                         Belum ada tim untuk klasemen.
                       </td>
                     </tr>

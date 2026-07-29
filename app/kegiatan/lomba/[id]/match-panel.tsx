@@ -144,11 +144,13 @@ export function MatchPanel({
                   )}
                   <p className="truncate text-right font-semibold text-foreground">{displayTeam(match.tim_b)}</p>
                 </div>
-                <div className="mt-3 flex items-center justify-between gap-3">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 px-2 py-0.5 rounded">
-                    {match.babak || "Penyisihan"}
-                  </span>
-                </div>
+                {match.babak && ["final", "semifinal"].includes(match.babak.toLowerCase()) && (
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40 px-2 py-0.5 rounded">
+                      {match.babak}
+                    </span>
+                  </div>
+                )}
               </article>
             )
           })
