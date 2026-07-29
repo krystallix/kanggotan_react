@@ -569,6 +569,7 @@ export async function getSponsorsByKegiatanIdClient(kegiatanId: number): Promise
     .from('sponsor')
     .select('*')
     .eq('kegiatan_id', kegiatanId)
+    .order('id', { ascending: true })
 
   if (error) {
     console.error('Error fetching sponsors client:', error)
