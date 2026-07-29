@@ -21,9 +21,9 @@ export function ShareButton({ title }: { title: string }) {
       // Tunggu render selesai
       const dataUrl = await toJpeg(element, {
         quality: 0.95,
-        backgroundColor: "#09090b", // Background zinc-950 biar pas
+        backgroundColor: "#ffffff", // Default background putih biar pas
         style: {
-          background: "#09090b", // Paksakan background style agar tidak transparan/hitam
+          background: "#ffffff", // Paksakan background style putih
           transform: "scale(1)",
           transformOrigin: "top left",
           width: element.offsetWidth + "px",

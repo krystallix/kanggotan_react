@@ -58,6 +58,29 @@ export default async function LombaDetailPage({ params }: PageProps) {
       (p) => displayTeam(p.tim_a) === team || displayTeam(p.tim_b) === team
     )
 
+    // Form Guide (W/L)
+    const history: Array<"W" | "L"> = []
+    
+    // Sort matches by date/time ascending to trace form chronologically
+    const sortedTeamMatches = [...matches]
+      .filter((m) => m.status === "selesai" && m.skor_a !== null && m.skor_b !== null)
+      .sort((a, b) => {
+        const dateA = a.tanggal ? new Date(a.tanggal + "T" + (a.jam || "00:00:00")) : new Date(0)
+        const dateB = b.tanggal ? new Date(b.tanggal + "T" + (b.jam || "00:00:00")) : new Date(0)
+        return dateA.getTime() - dateB.getTime()
+      })
+
+    sortedTeamMatches.forEach((m) => {
+      const isA = displayTeam(m.tim_a) === team
+      const skorOwn = isA ? m.skor_a! : m.skor_b!
+      const skorOpp = isA ? m.skor_b! : m.skor_a!
+      if (skorOwn > skorOpp) {
+        history.push("W")
+      } else {
+        history.push("L")
+      }
+    })
+
     const { menang, kalah, main, poin, seri } = matches.reduce(
       (acc, match) => {
         const isA = displayTeam(match.tim_a) === team
@@ -91,6 +114,7 @@ export default async function LombaDetailPage({ params }: PageProps) {
       kalah,
       poin,
       seri,
+      history: history.slice(-5), // Get last 5 matches
     }
   })
 
@@ -174,27 +198,74 @@ export default async function LombaDetailPage({ params }: PageProps) {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 text-xs uppercase tracking-wider text-muted-foreground">
                   <tr>
-                    <th className="w-12 px-4 py-3 text-left">#</th>
-                    <th className="min-w-44 px-4 py-3 text-left">Tim</th>
-                    <th className="px-4 py-3 text-center">M</th>
-                    <th className="px-4 py-3 text-center">W</th>
-                    <th className="px-4 py-3 text-center">L</th>
-                    <th className="px-4 py-3 text-center">Poin</th>
+                    <th className="w-12 px-4 py-3.5 text-left">#</th>
+                    <th className="min-w-44 px-4 py-3.5 text-left">Tim</th>
+                    <th className="px-4 py-3.5 text-center">M</th>
+                    <th className="px-4 py-3.5 text-center hidden sm:table-cell">W</th>
+                    <th className="px-4 py-3.5 text-center hidden sm:table-cell">L</th>
+                    <th className="px-4 py-3.5 text-center">Form</th>
+                    <th className="px-4 py-3.5 text-center">Poin</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {standings.length > 0 ? standings.map((row, index) => (
-                    <tr key={row.team} className="hover:bg-muted/30">
-                      <td className="px-4 py-4 font-medium text-muted-foreground">{index + 1}</td>
-                      <td className="px-4 py-4 font-semibold">{row.team}</td>
-                      <td className="px-4 py-4 text-center tabular-nums">{row.main}</td>
-                      <td className="px-4 py-4 text-center tabular-nums">{row.menang}</td>
-                      <td className="px-4 py-4 text-center tabular-nums">{row.kalah}</td>
-                      <td className="px-4 py-4 text-center font-bold tabular-nums">{row.poin}</td>
-                    </tr>
-                  )) : (
+                  {standings.length > 0 ? standings.map((row, index) => {
+                    const isTop4 = index < 4;
+                    return (
+                      <tr 
+                        key={row.team} 
+                        className={`hover:bg-muted/30 transition-colors ${
+                          isTop4 ? "bg-emerald-500/[0.02]" : ""
+                        }`}
+                      >
+                        <td className="px-4 py-4 font-medium text-muted-foreground flex items-center gap-2">
+                          <span className={`flex size-5 items-center justify-center rounded text-[10px] font-bold ${
+                            isTop4 
+                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" 
+                              : "bg-muted text-muted-foreground"
+                          }`}>
+                            {index + 1}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-foreground">{row.team}</span>
+                            {isTop4 && (
+                              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium sm:hidden">
+                                Zona Semifinal
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 text-center tabular-nums font-medium">{row.main}</td>
+                        <td className="px-4 py-4 text-center tabular-nums text-muted-foreground hidden sm:table-cell">{row.menang}</td>
+                        <td className="px-4 py-4 text-center tabular-nums text-muted-foreground hidden sm:table-cell">{row.kalah}</td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center justify-center gap-1">
+                            {row.history.length > 0 ? (
+                              row.history.map((h, i) => (
+                                <span
+                                  key={i}
+                                  className={`flex size-4.5 items-center justify-center rounded-full text-[9px] font-black ${
+                                    h === "W"
+                                      ? "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400"
+                                      : "bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400"
+                                  }`}
+                                  title={h === "W" ? "Menang" : "Kalah"}
+                                >
+                                  {h}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-xs text-muted-foreground/40 italic">—</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 text-center font-bold tabular-nums text-foreground">{row.poin}</td>
+                      </tr>
+                    );
+                  }) : (
                     <tr>
-                      <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">
+                      <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
                         Belum ada tim untuk klasemen.
                       </td>
                     </tr>
