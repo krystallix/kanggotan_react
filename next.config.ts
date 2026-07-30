@@ -4,6 +4,12 @@ const nextConfig: NextConfig = {
   reactStrictMode: false,
   images: {
     unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "picsum.photos",
+      },
+    ],
   },
   compress: true,
   async headers() {
