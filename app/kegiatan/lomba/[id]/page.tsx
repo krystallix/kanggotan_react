@@ -1,7 +1,7 @@
 import Layout from "@/components/layout/home-layout"
 import { getPertandinganByLombaId, getSponsorsByKegiatanId } from "@/lib/supabase/queries-server"
 import { createClient } from "@/lib/supabase/server"
-import { CalendarDays, Clock, ExternalLink, MapPin, Users } from "lucide-react"
+import { CalendarDays, Clock, ExternalLink, Info, MapPin, Users } from "lucide-react"
 import { notFound } from "next/navigation"
 import { MatchTabs } from "./match-panel"
 import { ShareButton } from "./share-button"
@@ -119,36 +119,52 @@ export default async function LombaDetailPage({ params }: PageProps) {
     }
   })
 
-  standings.sort((a, b) =>
-    b.poin === a.poin
-      ? b.menang === a.menang
-        ? headToHead(a.team, b.team, pertandingan)
-        : b.menang - a.menang
-      : b.poin - a.poin
-  )
+  standings.sort((a, b) => {
+    if (b.poin !== a.poin) return b.poin - a.poin
+    if (b.menang !== a.menang) return b.menang - a.menang
+
+    const h2h = headToHead(a.team, b.team, pertandingan)
+    if (h2h !== 0) return h2h
+
+    const setDiffA = a.tw - a.tl
+    const setDiffB = b.tw - b.tl
+    if (setDiffB !== setDiffA) return setDiffB - setDiffA
+    if (b.tw !== a.tw) return b.tw - a.tw
+    if (a.tl !== b.tl) return a.tl - b.tl
+
+    return a.team.localeCompare(b.team, "id-ID", { numeric: true })
+  })
 
   function headToHead(teamA: string, teamB: string, matches: Match[]): number {
     const relevantMatches = matches.filter(
       (m) =>
-        (displayTeam(m.tim_a) === teamA && displayTeam(m.tim_b) === teamB) ||
-        (displayTeam(m.tim_a) === teamB && displayTeam(m.tim_b) === teamA)
+        m.status === "selesai" &&
+        m.skor_a !== null &&
+        m.skor_b !== null &&
+        ((displayTeam(m.tim_a) === teamA && displayTeam(m.tim_b) === teamB) ||
+          (displayTeam(m.tim_a) === teamB && displayTeam(m.tim_b) === teamA))
     )
+
+    if (relevantMatches.length === 0) return 0
+
     const result = relevantMatches.reduce(
       (acc, match) => {
-        if (match.skor_a !== null && match.skor_b !== null) {
-          const isATeamA = displayTeam(match.tim_a) === teamA
-          const [skorA, skorB] = isATeamA
-            ? [match.skor_a, match.skor_b]
-            : [match.skor_b, match.skor_a]
+        const isATeamA = displayTeam(match.tim_a) === teamA
+        const skorA = isATeamA ? match.skor_a! : match.skor_b!
+        const skorB = isATeamA ? match.skor_b! : match.skor_a!
 
-          if (skorA > skorB) acc += 1
-          else acc -= 1
-        }
+        if (skorA > skorB) acc.match += 1
+        else acc.match -= 1
+
+        acc.setDiff += skorA - skorB
         return acc
       },
-      0
+      { match: 0, setDiff: 0 }
     )
-    return result === 0 ? 0 : result > 0 ? -1 : 1
+
+    if (result.match !== 0) return result.match > 0 ? -1 : 1
+    if (result.setDiff !== 0) return result.setDiff > 0 ? -1 : 1
+    return 0
   }
 
 
@@ -191,8 +207,37 @@ export default async function LombaDetailPage({ params }: PageProps) {
         <section className="grid gap-6 lg:grid-cols-[3fr_2fr] px-0 sm:px-0">
           <FadeIn delay={0.1}>
             <div className="rounded-none sm:rounded-2xl border-y sm:border border-border bg-card overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+              <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
                 <h2 className="font-bold text-base">Klasemen</h2>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button type="button" className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs font-bold text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary">
+                      <Info className="size-3.5" />
+                      Tie breaker
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 rounded-2xl p-4" align="end" sideOffset={10}>
+                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Syarat tie breaker</p>
+                    <div className="mt-3 divide-y divide-border text-sm leading-relaxed text-foreground">
+                      {[
+                        "Poin tertinggi.",
+                        "Jumlah menang terbanyak.",
+                        "Head-to-head: hasil pertemuan langsung antar tim yang poin dan menangnya sama.",
+                        "Jika head-to-head imbang karena 2 kali bertemu dan saling mengalahkan, pakai selisih set pada pertemuan langsung.",
+                        "Jika masih sama atau belum saling bertemu, pakai selisih set total: TW dikurangi TL.",
+                        "Jika masih sama, pakai total set menang terbanyak.",
+                        "Jika masih sama, pakai total set kalah paling sedikit.",
+                      ].map((item, index) => (
+                        <div key={item} className="flex gap-3 py-2 first:pt-0 last:pb-0">
+                          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-black text-primary">
+                            {index + 1}
+                          </span>
+                          <p>{item}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="sm:hidden">
                 <table className="w-full table-fixed text-[11px]">
