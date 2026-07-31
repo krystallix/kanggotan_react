@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, type ReactNode } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { Check, Loader2, Share2, Trophy } from "lucide-react"
 import { toJpeg } from "html-to-image"
 import { toast } from "sonner"
@@ -83,13 +83,14 @@ function SponsorStrip({ sponsors }: { sponsors: Sponsor[] }) {
   )
 }
 
-function CaptureFrame({ children, sponsors, label, title, autoHeight = false }: { children: ReactNode; sponsors: Sponsor[]; label: string; title: string; autoHeight?: boolean }) {
+function CaptureFrame({ children, sponsors, label, title, pageUrl, autoHeight = false }: { children: ReactNode; sponsors: Sponsor[]; label: string; title: string; pageUrl: string; autoHeight?: boolean }) {
   return (
     <div style={{ width: 1200, minHeight: 900, height: autoHeight ? "auto" : 900, background: "#ffffff", color: "#111827", padding: 56, fontFamily: "Inter, Arial, sans-serif", display: "flex", flexDirection: "column", overflow: autoHeight ? "visible" : "hidden" }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 24, marginBottom: 34 }}>
         <div>
           <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "oklch(0.457 0.24 277.023)", letterSpacing: 3, textTransform: "uppercase" }}>{label}</p>
           <h1 style={{ margin: "10px 0 0", fontSize: 54, lineHeight: 1, fontWeight: 950, letterSpacing: -2 }}>{title}</h1>
+          <p style={{ margin: "14px 0 0", fontSize: 18, lineHeight: 1.45, fontWeight: 700, color: "#6b7280" }}>Lihat klasemen dan jadwal lengkap melalui laman {pageUrl}</p>
         </div>
         <div style={{ width: 82, height: 82, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
           <img src="/logo-risma.png" alt="RISMA" style={{ width: 78, height: 78, objectFit: "contain" }} />
@@ -118,6 +119,11 @@ export function ShareButton({
   const [shared, setShared] = useState<"standings" | "schedule" | null>(null)
   const [scheduleMode, setScheduleMode] = useState<ScheduleMode>("nearest")
   const [previewType, setPreviewType] = useState<"standings" | "schedule" | null>(null)
+  const [pageUrl, setPageUrl] = useState("")
+
+  useEffect(() => {
+    setPageUrl(window.location.href)
+  }, [])
 
   const nowWib = getWibStamp()
   const upcomingMatches = matches
@@ -152,8 +158,8 @@ export function ShareButton({
       const shareData = {
         files: [file],
         title,
-        text: `${type === "standings" ? "Klasemen" : "Jadwal pertandingan"} ${title}`,
-        url: window.location.href,
+        text: `${type === "standings" ? "Klasemen" : "Jadwal pertandingan"} ${title}. Lihat klasemen dan jadwal lengkap melalui laman ${pageUrl || window.location.href}`,
+        url: pageUrl || window.location.href,
       }
 
       if (navigator.canShare && navigator.canShare(shareData)) {
@@ -166,7 +172,7 @@ export function ShareButton({
         link.download = fileName
         link.href = dataUrl
         link.click()
-        await navigator.clipboard.writeText(window.location.href)
+        await navigator.clipboard.writeText(pageUrl || window.location.href)
         toast.success("Gambar diunduh & tautan disalin ke clipboard!")
       }
     } catch (error) {
@@ -178,7 +184,7 @@ export function ShareButton({
   }
 
   const standingsPreview = (
-    <CaptureFrame title={title} label="Klasemen" sponsors={sponsors}>
+    <CaptureFrame title={title} label="Klasemen" sponsors={sponsors} pageUrl={pageUrl}>
       <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed", fontSize: 24 }}>
         <thead>
           <tr style={{ color: "#6b7280", fontSize: 16, textTransform: "uppercase", letterSpacing: 2, borderBottom: "2px solid #e5e7eb" }}>
@@ -209,7 +215,7 @@ export function ShareButton({
   )
 
   const schedulePreview = (
-    <CaptureFrame title={title} label={scheduleMode === "nearest" ? "Jadwal terdekat" : "Semua jadwal"} sponsors={sponsors} autoHeight={scheduleMode === "all"}>
+    <CaptureFrame title={title} label={scheduleMode === "nearest" ? "Jadwal terdekat" : "Semua jadwal"} sponsors={sponsors} pageUrl={pageUrl} autoHeight={scheduleMode === "all"}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         {scheduleMatches.map((match) => (
           <div key={match.id} style={{ border: "1px solid #e5e7eb", borderRadius: 24, padding: 22, minHeight: 120 }}>
