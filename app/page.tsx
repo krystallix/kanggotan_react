@@ -15,19 +15,19 @@ export default async function Page() {
         <div className="absolute inset-x-[-24px] top-0 bottom-10 -z-10 bg-[#F3F3F3]" />
         <FadeIn y={24}>
           <div className="relative rounded-[2rem] bg-white p-4 shadow-2xl shadow-black/10 ring-1 ring-black/5">
-            <div className="relative min-h-[560px] overflow-hidden rounded-[1.5rem] bg-[#D4F547] px-8 py-10 lg:px-14 lg:py-16">
+            <div className="relative min-h-[560px] overflow-hidden rounded-[1.5rem] bg-[oklch(0.457_0.24_277.023)] px-8 py-10 lg:px-14 lg:py-16">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_20%,rgba(255,255,255,0.55),transparent_30%),radial-gradient(circle_at_85%_90%,rgba(0,0,0,0.08),transparent_22%)]" />
               <div className="relative z-10 max-w-2xl">
-                <div className="mb-16 flex items-center gap-2 text-xs font-semibold text-black/70">
+                <div className="mb-16 flex items-center gap-2 text-xs font-semibold text-white/70">
                   <span>RISMA Kanggotan</span>
-                  <span className="size-4 rounded-full bg-black text-[9px] text-[#D4F547] grid place-items-center">+</span>
+                  <span className="size-4 rounded-full bg-black text-[9px] text-white grid place-items-center">+</span>
                 </div>
-                <h1 className="text-6xl sm:text-7xl lg:text-[6rem] font-black leading-[0.9] tracking-tighter text-black mb-8">
+                <h1 className="text-6xl sm:text-7xl lg:text-[6rem] font-black leading-[0.9] tracking-tighter text-white mb-8">
                   Membangun<br />
                   Generasi<br />
                   Berakhlak
                 </h1>
-                <p className="max-w-sm text-sm leading-relaxed text-black/65 mb-8">
+                <p className="max-w-sm text-sm leading-relaxed text-white/70 mb-8">
                   RISMA Kanggotan Lor aktif dalam kegiatan keagamaan, sosial, dan pemberdayaan pemuda bersama warga.
                 </p>
                 <div className="flex flex-wrap gap-3">
@@ -68,7 +68,7 @@ export default async function Page() {
                   href={`/kegiatan?kategori=${kat.id}`}
                   className="group relative flex min-h-44 flex-col justify-between gap-6 overflow-hidden rounded-3xl bg-[#F5F5F5] p-7 transition-all duration-300 hover:-translate-y-1 hover:bg-[#EFEFEF] hover:shadow-lg hover:shadow-black/5"
                 >
-                  <div className="absolute -bottom-10 -right-8 h-28 w-24 rotate-12 rounded-[2rem] bg-[#D4F547]" />
+                  <div className="absolute -bottom-10 -right-8 h-28 w-24 rotate-12 rounded-[2rem] bg-[oklch(0.457_0.24_277.023)]" />
                   <div className="absolute -bottom-8 right-14 h-16 w-12 rotate-12 rounded-t-full bg-black" />
                   <div className="relative z-10 max-w-[15rem]">
                     <h3 className="font-semibold mb-2 text-black">{kat.name}</h3>
@@ -183,7 +183,7 @@ export default async function Page() {
           >
             <div
               className="absolute -top-20 -right-20 w-64 h-64 rounded-full opacity-30"
-              style={{ background: "#D4F547", filter: "blur(60px)" }}
+              style={{ background: "oklch(0.457 0.24 277.023)", filter: "blur(60px)" }}
             />
             <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div>
@@ -194,8 +194,8 @@ export default async function Page() {
                 href="https://wa.me/6281354007400"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm text-black hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
-                style={{ background: "#D4F547" }}
+                className="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm text-white hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200"
+                style={{ background: "oklch(0.457 0.24 277.023)" }}
               >
                 Hubungi via WhatsApp <ArrowRight className="size-4" />
               </a>
