@@ -3,30 +3,36 @@ import { MapPin, Phone, Instagram } from "lucide-react";
 
 export function Footer() {
     return (
-        <footer className="border-t border-border bg-muted/30 mt-8">
-            <div className="container mx-auto px-4 py-10">
-                <div className="grid gap-8 md:grid-cols-3">
-                    {/* Identitas */}
+        <footer className="relative mt-16 overflow-hidden bg-[oklch(0.457_0.24_277.023)] text-white">
+            <div className="absolute inset-0 opacity-18 [background-image:linear-gradient(to_right,rgba(255,255,255,0.22)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.22)_1px,transparent_1px)] [background-size:42px_42px]" />
+            <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/15 blur-3xl" />
+            <div className="absolute -bottom-32 left-10 h-80 w-80 rounded-full bg-black/20 blur-3xl" />
+            <div className="container relative mx-auto px-4 max-w-6xl">
+                <div className="grid gap-10 md:grid-cols-[2fr_1fr_1fr] py-12">
                     <div>
-                        <h3 className="font-bold text-lg mb-2">RISMA Kanggotan</h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                            Organisasi Remaja Masjid At-Ta&apos;awun Kanggotan Lor. Aktif dalam kegiatan keagamaan dan sosial masyarakat.
+                        <div className="flex items-center gap-2 mb-4">
+                            <span className="size-7 rounded-lg bg-white flex items-center justify-center shrink-0">
+                                <span className="text-[oklch(0.457_0.24_277.023)] font-black text-xs">K</span>
+                            </span>
+                             <span className="font-bold text-base tracking-tight text-white">Kanggotan</span>
+                        </div>
+                        <p className="text-sm text-white/70 leading-relaxed max-w-[28ch]">
+                            Remaja Masjid At-Ta&apos;awun Kanggotan Lor. Aktif dalam kegiatan keagamaan dan sosial masyarakat.
                         </p>
                     </div>
 
-                    {/* Navigasi */}
                     <div>
-                        <h4 className="font-semibold text-sm mb-3">Navigasi</h4>
-                        <ul className="space-y-2 text-sm text-muted-foreground">
+                        <h4 className="font-semibold text-xs tracking-widest uppercase text-white/55 mb-4">Navigasi</h4>
+                        <ul className="space-y-2.5 text-sm">
                             {[
                                 { label: "Beranda", href: "/" },
-                                { label: "Tentang Kami", href: "/tentang-kami" },
+                                { label: "Tentang kami", href: "/tentang-kami" },
                                 { label: "Kegiatan", href: "/kegiatan" },
                                 { label: "Haul Massal", href: "/haul-massal" },
                                 { label: "Blog", href: "/blog" },
                             ].map(({ label, href }) => (
                                 <li key={href}>
-                                    <Link href={href} className="hover:text-primary transition-colors">
+                                    <Link href={href} className="text-white/70 hover:text-white transition-colors duration-200">
                                         {label}
                                     </Link>
                                 </li>
@@ -34,31 +40,22 @@ export function Footer() {
                         </ul>
                     </div>
 
-                    {/* Kontak */}
                     <div>
-                        <h4 className="font-semibold text-sm mb-3">Kontak</h4>
-                        <ul className="space-y-2 text-sm text-muted-foreground">
+                        <h4 className="font-semibold text-xs tracking-widest uppercase text-white/55 mb-4">Kontak</h4>
+                        <ul className="space-y-2.5 text-sm text-white/70">
                             <li className="flex items-start gap-2">
-                                <MapPin className="size-4 mt-0.5 shrink-0 text-primary" />
-                                <span>Masjid At-Ta&apos;awun, Kanggotan Lor, Yogyakarta</span>
+                                <MapPin className="size-4 mt-0.5 shrink-0 text-white" />
+                                <span>Kanggotan Lor, Yogyakarta</span>
                             </li>
                             <li className="flex items-center gap-2">
-                                <Phone className="size-4 shrink-0 text-primary" />
-                                <a href="https://wa.me/6281354007400" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                                <Phone className="size-4 shrink-0 text-white" />
+                                <a href="https://wa.me/6281354007400" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors duration-200">
                                     0813-5400-7400
                                 </a>
                             </li>
                             <li className="flex items-center gap-2">
-                                <Instagram className="size-4 shrink-0 text-primary" />
-                                <a href="https://instagram.com/rismakanggotanlor" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
-                                    @rismakanggotanlor
-                                </a>
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <svg className="size-4 shrink-0 text-primary fill-current" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z"/>
-                                </svg>
-                                <a href="https://tiktok.com/@rismakanggotanlor" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                                <Instagram className="size-4 shrink-0 text-white" />
+                                <a href="https://instagram.com/rismakanggotanlor" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors duration-200">
                                     @rismakanggotanlor
                                 </a>
                             </li>
@@ -66,8 +63,9 @@ export function Footer() {
                     </div>
                 </div>
 
-                <div className="mt-8 border-t border-border pt-6 text-center text-xs text-muted-foreground">
-                    &copy; {new Date().getFullYear()} RISMA Kanggotan Lor. Semua hak dilindungi.
+                <div className="border-t border-white/15 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-white/55">
+                    <span>&copy; {new Date().getFullYear()} RISMA Kanggotan Lor</span>
+                    <span>Masjid At-Ta&apos;awun · Kanggotan Lor</span>
                 </div>
             </div>
         </footer>

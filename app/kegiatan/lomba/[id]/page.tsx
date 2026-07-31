@@ -1,15 +1,12 @@
 import Layout from "@/components/layout/home-layout"
 import { getPertandinganByLombaId, getSponsorsByKegiatanId } from "@/lib/supabase/queries-server"
 import { createClient } from "@/lib/supabase/server"
-import { CalendarDays, Clock, Users, Globe, MapPin } from "lucide-react"
+import { CalendarDays, Clock, ExternalLink, MapPin, Users } from "lucide-react"
 import { notFound } from "next/navigation"
-import { MatchPanel } from "./match-panel"
+import { MatchTabs } from "./match-panel"
 import { ShareButton } from "./share-button"
-
-export const viewport = {
-  width: 1280,
-  initialScale: 1,
-}
+import { FadeIn, StaggerChildren, StaggerItem } from "@/components/motion"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 const formatDate = (date: string | null) => {
   if (!date) return "TBA"
@@ -58,7 +55,30 @@ export default async function LombaDetailPage({ params }: PageProps) {
       (p) => displayTeam(p.tim_a) === team || displayTeam(p.tim_b) === team
     )
 
-    const { menang, kalah, main, poin, seri } = matches.reduce(
+    // Form Guide (W/L)
+    const history: Array<"W" | "L"> = []
+    
+    // Sort matches by date/time ascending to trace form chronologically
+    const sortedTeamMatches = [...matches]
+      .filter((m) => m.status === "selesai" && m.skor_a !== null && m.skor_b !== null)
+      .sort((a, b) => {
+        const dateA = a.tanggal ? new Date(a.tanggal + "T" + (a.jam || "00:00:00")) : new Date(0)
+        const dateB = b.tanggal ? new Date(b.tanggal + "T" + (b.jam || "00:00:00")) : new Date(0)
+        return dateA.getTime() - dateB.getTime()
+      })
+
+    sortedTeamMatches.forEach((m) => {
+      const isA = displayTeam(m.tim_a) === team
+      const skorOwn = isA ? m.skor_a! : m.skor_b!
+      const skorOpp = isA ? m.skor_b! : m.skor_a!
+      if (skorOwn > skorOpp) {
+        history.push("W")
+      } else {
+        history.push("L")
+      }
+    })
+
+    const { menang, kalah, main, poin, seri, tw, tl } = matches.reduce(
       (acc, match) => {
         const isA = displayTeam(match.tim_a) === team
         const skorA = isA ? match.skor_a : match.skor_b
@@ -66,6 +86,8 @@ export default async function LombaDetailPage({ params }: PageProps) {
 
         if (skorA !== null && skorB !== null) {
           acc.main += 1
+          acc.tw += skorA
+          acc.tl += skorB
           if (skorA === 3 && skorB < 2) {
             acc.menang += 1
             acc.poin += 3
@@ -81,7 +103,7 @@ export default async function LombaDetailPage({ params }: PageProps) {
         }
         return acc
       },
-      { menang: 0, kalah: 0, main: 0, poin: 0, seri: 0 }
+      { menang: 0, kalah: 0, main: 0, poin: 0, seri: 0, tw: 0, tl: 0 }
     )
 
     return {
@@ -91,6 +113,9 @@ export default async function LombaDetailPage({ params }: PageProps) {
       kalah,
       poin,
       seri,
+      tw,
+      tl,
+      history: history.slice(-5),
     }
   })
 
@@ -129,10 +154,11 @@ export default async function LombaDetailPage({ params }: PageProps) {
 
   return (
     <Layout>
-      <div id="lomba-content" className="py-10 bg-background px-4 rounded-3xl">
-        <section className="mb-8 pb-6 flex flex-wrap items-end justify-between gap-4">
+      <div id="lomba-content" className="py-10 bg-background sm:px-4 rounded-3xl">
+        {/* Header */}
+        <FadeIn className="mb-8 pb-6 flex flex-wrap items-end justify-between gap-4 px-4 sm:px-0">
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+            <p className="mb-2 text-xs font-medium tracking-widest uppercase text-primary/70">
               {lomba.kegiatan?.title}
             </p>
             <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{lomba.nama}</h1>
@@ -158,135 +184,205 @@ export default async function LombaDetailPage({ params }: PageProps) {
             </div>
           </div>
           <div className="no-share-capture">
-            <ShareButton title={lomba.nama} />
+            <ShareButton title={lomba.nama} standings={standings} matches={pertandingan} sponsors={sponsors} />
           </div>
-        </section>
+        </FadeIn>
 
-        <section className="grid gap-6 lg:grid-cols-[7fr_3fr]">
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
-            <div className="flex items-center justify-between  px-5 py-4">
-              <div>
-                <h2 className="font-semibold text-xl">Klasemen</h2>
-                <p className="text-xs text-muted-foreground"></p>
+        <section className="grid gap-6 lg:grid-cols-[3fr_2fr] px-0 sm:px-0">
+          <FadeIn delay={0.1}>
+            <div className="rounded-none sm:rounded-2xl border-y sm:border border-border bg-card overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+                <h2 className="font-bold text-base">Klasemen</h2>
+              </div>
+              <div className="sm:hidden">
+                <table className="w-full table-fixed text-[11px]">
+                  <thead className="bg-muted/40 text-[9px] uppercase tracking-wider text-muted-foreground">
+                    <tr>
+                      <th className="w-7 px-1.5 py-2 text-left">#</th>
+                      <th className="px-1.5 py-2 text-left">Tim</th>
+                      <th className="w-7 px-1 py-2 text-center">M</th>
+                      <th className="w-7 px-1 py-2 text-center">W</th>
+                      <th className="w-7 px-1 py-2 text-center">L</th>
+                      <th className="w-10 px-1 py-2 text-center">TW</th>
+                      <th className="w-10 px-1 py-2 text-center">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {standings.length > 0 ? standings.map((row, index) => (
+                      <tr key={row.team}>
+                        <td className="px-1.5 py-2 font-black text-primary">{index + 1}</td>
+                        <td className="min-w-0 px-1.5 py-2">
+                          <span className="block truncate font-semibold text-foreground">{row.team}</span>
+                        </td>
+                        <td className="px-1 py-2 text-center tabular-nums text-muted-foreground">{row.main}</td>
+                        <td className="px-1 py-2 text-center tabular-nums text-emerald-600">{row.menang}</td>
+                        <td className="px-1 py-2 text-center tabular-nums text-red-500">{row.kalah}</td>
+                        <td className="px-1 py-2 text-center tabular-nums font-medium">{row.tw}/{row.tl}</td>
+                        <td className="px-1 py-2 text-center font-black tabular-nums text-foreground">{row.poin}</td>
+                      </tr>
+                    )) : (
+                      <tr>
+                        <td colSpan={7} className="px-4 py-12 text-center text-sm text-muted-foreground">Belum ada tim untuk klasemen.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              <div className="hidden overflow-x-auto sm:block">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/40 text-[10px] uppercase tracking-widest text-muted-foreground">
+                    <tr>
+                      <th className="w-12 px-4 py-3 text-left">#</th>
+                      <th className="min-w-44 px-4 py-3 text-left">Tim</th>
+                      <th className="px-4 py-3 text-center">M</th>
+                      <th className="px-4 py-3 text-center">W</th>
+                      <th className="px-4 py-3 text-center">L</th>
+                      <th className="px-4 py-3 text-center">TW/TL</th>
+                      <th className="px-4 py-3 text-center">Form</th>
+                      <th className="px-4 py-3 text-center">Poin</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {standings.length > 0 ? standings.map((row, index) => {
+                      const isTop4 = index < 4;
+                      const medal = index === 0 ? "text-amber-500" : index === 1 ? "text-zinc-400" : index === 2 ? "text-amber-700" : null
+                      return (
+                        <tr
+                          key={row.team}
+                          className={`hover:bg-muted/30 transition-colors duration-150 ${isTop4 ? "bg-emerald-500/[0.015]" : ""}`}
+                        >
+                          <td className="px-4 py-3.5 font-medium text-muted-foreground">
+                            <span className={`flex size-5 items-center justify-center rounded text-[10px] font-black ${
+                              medal
+                                ? `${medal} bg-current/10`
+                                : isTop4
+                                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                  : "bg-muted text-muted-foreground"
+                            }`}>
+                              {index + 1}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3.5">
+                            <span className="font-semibold text-foreground">{row.team}</span>
+                          </td>
+                          <td className="px-4 py-3.5 text-center tabular-nums font-medium text-muted-foreground">{row.main}</td>
+                          <td className="px-4 py-3.5 text-center tabular-nums text-muted-foreground">{row.menang}</td>
+                          <td className="px-4 py-3.5 text-center tabular-nums text-muted-foreground">{row.kalah}</td>
+                          <td className="px-4 py-3.5 text-center tabular-nums font-medium">
+                            <span className="text-emerald-600 dark:text-emerald-400">{row.tw}</span>
+                            <span className="text-muted-foreground mx-0.5">/</span>
+                            <span className="text-red-500">{row.tl}</span>
+                          </td>
+                          <td className="px-4 py-3.5">
+                            <div className="flex items-center justify-center gap-1">
+                              {row.history.length > 0 ? (
+                                row.history.map((h, i) => (
+                                  <span
+                                    key={i}
+                                    className={`flex size-4.5 items-center justify-center rounded-full text-[9px] font-black ${
+                                      h === "W"
+                                        ? "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400"
+                                        : "bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400"
+                                    }`}
+                                    title={h === "W" ? "Menang" : "Kalah"}
+                                  >
+                                    {h}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-xs text-muted-foreground/40 italic">—</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3.5 text-center font-black tabular-nums text-foreground text-base">{row.poin}</td>
+                        </tr>
+                      );
+                    }) : (
+                      <tr>
+                        <td colSpan={8} className="px-4 py-12 text-center text-muted-foreground text-sm">
+                          Belum ada tim untuk klasemen.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50 text-xs uppercase tracking-wider text-muted-foreground">
-                  <tr>
-                    <th className="w-12 px-4 py-3 text-left">#</th>
-                    <th className="min-w-44 px-4 py-3 text-left">Tim</th>
-                    <th className="px-4 py-3 text-center">M</th>
-                    <th className="px-4 py-3 text-center">W</th>
-                    <th className="px-4 py-3 text-center">L</th>
-                    <th className="px-4 py-3 text-center">Poin</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {standings.length > 0 ? standings.map((row, index) => (
-                    <tr key={row.team} className="hover:bg-muted/30">
-                      <td className="px-4 py-4 font-medium text-muted-foreground">{index + 1}</td>
-                      <td className="px-4 py-4 font-semibold">{row.team}</td>
-                      <td className="px-4 py-4 text-center tabular-nums">{row.main}</td>
-                      <td className="px-4 py-4 text-center tabular-nums">{row.menang}</td>
-                      <td className="px-4 py-4 text-center tabular-nums">{row.kalah}</td>
-                      <td className="px-4 py-4 text-center font-bold tabular-nums">{row.poin}</td>
-                    </tr>
-                  )) : (
-                    <tr>
-                      <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">
-                        Belum ada tim untuk klasemen.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+          </FadeIn>
 
-            {sponsors.length > 0 && (
-              <div className="py-6 lg:py-8 border-t border-border/50 bg-card overflow-hidden mt-10 border-b border-border/50 flex relative select-none">
-                <div className="flex w-max animate-marquee">
+          <StaggerChildren stagger={0.1} delay={0.15} className="grid gap-6 px-4 sm:px-0">
+            <StaggerItem>
+              <MatchTabs
+                recentMatches={recentMatches}
+                allRecentMatches={pertandingan.filter((p) => p.status === "selesai").reverse()}
+                upcomingMatches={upcomingMatches}
+                allUpcomingMatches={pertandingan.filter((p) => p.status !== "selesai")}
+              />
+            </StaggerItem>
+          </StaggerChildren>
+        </section>
+
+        {sponsors.length > 0 && (
+          <FadeIn delay={0.2}>
+            <section className="mt-12 border-t border-border pt-10">
+              <div className="mb-6">
+                <h2 className="text-xl font-bold tracking-tight">Sponsor kegiatan</h2>
+                <p className="text-sm text-muted-foreground mt-1">Terima kasih kepada para sponsor yang mendukung kesuksesan kegiatan ini.</p>
+              </div>
+              <div className="relative flex overflow-hidden border-y border-border/50 py-7 select-none">
+                <div className="flex w-max animate-marquee items-center">
                   {[...sponsors, ...sponsors].map((sponsor, idx) => {
                     const content = sponsor.logo_url ? (
                       <img
                         src={sponsor.logo_url}
                         alt={sponsor.nama}
-                        className="h-8 lg:h-12 w-auto object-contain opacity-50 hover:opacity-100 active:opacity-100 transition-opacity duration-300 cursor-pointer"
+                        className="h-10 w-auto object-contain opacity-60 transition-opacity duration-300 hover:opacity-100 active:opacity-100 lg:h-14"
                       />
                     ) : (
-                      <span className="font-bold text-sm tracking-tight text-foreground opacity-50 hover:opacity-100 active:opacity-100 transition-opacity duration-300 cursor-pointer">{sponsor.nama}</span>
+                      <span className="text-sm font-bold tracking-tight text-foreground/60 transition-colors duration-300 hover:text-foreground active:text-foreground">{sponsor.nama}</span>
                     )
 
-                    return sponsor.sosmed_url ? (
-                      <a
-                        key={`${sponsor.id}-${idx}`}
-                        href={sponsor.sosmed_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex shrink-0 justify-center items-center px-6 lg:px-12 block"
-                      >
-                        {content}
-                      </a>
-                    ) : (
-                      <div
-                        key={`${sponsor.id}-${idx}`}
-                        className="flex shrink-0 justify-center items-center px-6 lg:px-12"
-                      >
-                        {content}
-                      </div>
+                    return (
+                      <Popover key={`${sponsor.id}-${idx}`}>
+                        <PopoverTrigger asChild>
+                          <button type="button" className="flex shrink-0 items-center justify-center px-8 lg:px-14">
+                            {content}
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-72 rounded-2xl p-4" sideOffset={10}>
+                          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{sponsor.nama}</p>
+                          <div className="mt-4 grid gap-2">
+                            {sponsor.lokasi_url && (
+                              <a
+                                href={sponsor.lokasi_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                              >
+                                <MapPin className="size-4" />
+                                Buka lokasi
+                              </a>
+                            )}
+                            {sponsor.sosmed_url && (
+                              <a
+                                href={sponsor.sosmed_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-sm font-bold text-background transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                              >
+                                <ExternalLink className="size-4" />
+                                Buka sosmed
+                              </a>
+                            )}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
                     )
                   })}
                 </div>
               </div>
-            )}
-          </div>
-
-          <aside className="grid gap-6">
-            <MatchPanel title="Recent Matches" matches={recentMatches} allMatches={pertandingan.filter((p) => p.status === "selesai").reverse()} empty="Belum ada hasil pertandingan." actionLabel="Lihat semua pertandingan" />
-            <MatchPanel title="Upcoming Matches" matches={upcomingMatches} allMatches={pertandingan.filter((p) => p.status !== "selesai")} empty="Belum ada pertandingan mendatang." actionLabel="Lihat pertandingan selanjutnya" />
-          </aside>
-        </section>
-
-        {sponsors.length > 0 && (
-          <section className="mt-12 border-t border-border pt-10">
-            <div className="mb-6">
-              <h2 className="text-xl font-bold tracking-tight">Sponsor Kegiatan</h2>
-              <p className="text-sm text-muted-foreground mt-1">Terima kasih kepada para sponsor yang mendukung kesuksesan kegiatan ini.</p>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {sponsors.map((sponsor) => (
-                <div key={sponsor.id} className="flex items-start gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm hover:shadow-md transition-all duration-200">
-                  {sponsor.logo_url ? (
-                    <img src={sponsor.logo_url} alt={sponsor.nama} className="size-12 rounded-xl object-contain bg-muted p-1 border border-border/40 shrink-0" />
-                  ) : (
-                    <div className="size-12 rounded-xl bg-primary/10 text-primary font-black text-lg flex items-center justify-center shrink-0">
-                      {sponsor.nama.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-bold text-sm truncate text-foreground">{sponsor.nama}</h3>
-                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
-                      {sponsor.lokasi_url && (
-                        <a href={sponsor.lokasi_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
-                          <MapPin className="size-3 shrink-0" />
-                          Maps
-                        </a>
-                      )}
-                      {sponsor.sosmed_url && (
-                        <a href={sponsor.sosmed_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
-                          <Globe className="size-3 shrink-0" />
-                          Sosmed
-                        </a>
-                      )}
-                    </div>
-                    {sponsor.deskripsi && (
-                      <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">{sponsor.deskripsi}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
+            </section>
+          </FadeIn>
         )}
       </div>
     </Layout>
