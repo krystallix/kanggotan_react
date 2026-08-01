@@ -58,7 +58,7 @@ export default function LombaPage() {
 
   return (
     <DashLayout>
-      <div className="py-6">
+      <div className="space-y-6">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Lomba</h1>
@@ -71,7 +71,7 @@ export default function LombaPage() {
           </Button>
         </div>
 
-        <Card className="overflow-hidden border-border/50 shadow-sm">
+        <Card className="overflow-hidden rounded-2xl border border-black/8 bg-white shadow-none">
           <CardContent className="p-0">
             <Table>
               <TableHeader>

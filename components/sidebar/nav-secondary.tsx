@@ -1,6 +1,9 @@
-import * as React from "react"
-import { type LucideIcon } from "lucide-react"
+"use client"
 
+import * as React from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { type LucideIcon } from "lucide-react"
 import {
     SidebarGroup,
     SidebarGroupContent,
@@ -19,17 +22,24 @@ export function NavSecondary({
         icon: LucideIcon
     }[]
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
+    const pathname = usePathname()
+
     return (
-        <SidebarGroup {...props}>
+        <SidebarGroup className="px-3 py-2" {...props}>
             <SidebarGroupContent>
-                <SidebarMenu>
+                <SidebarMenu className="gap-1.5">
                     {items.map((item) => (
                         <SidebarMenuItem key={item.title}>
-                            <SidebarMenuButton asChild size="sm">
-                                <a href={item.url}>
-                                    <item.icon />
+                            <SidebarMenuButton
+                                asChild
+                                size="sm"
+                                isActive={pathname === item.url}
+                                className="h-9 rounded-2xl px-3 text-xs font-semibold text-black/45 transition-all duration-200 hover:bg-black/5 hover:text-black data-active:bg-black data-active:text-white"
+                            >
+                                <Link href={item.url}>
+                                    <item.icon className="size-4" />
                                     <span>{item.title}</span>
-                                </a>
+                                </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                     ))}

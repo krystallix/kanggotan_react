@@ -49,7 +49,7 @@ export default function KegiatanDashboardPage() {
 
   return (
     <DashLayout>
-      <div className="py-6">
+      <div className="space-y-6">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Kegiatan</h1>
@@ -106,77 +106,136 @@ export default function KegiatanDashboardPage() {
         </div>
 
         {/* Table */}
-        <Card className="overflow-hidden border-border/50 shadow-sm">
+        <Card className="overflow-hidden rounded-2xl border border-black/8 bg-white shadow-none">
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/30">
-                  <TableHead className="font-medium">Judul</TableHead>
-                  <TableHead className="font-medium">Kategori</TableHead>
-                  <TableHead className="font-medium">Tanggal</TableHead>
-                  <TableHead className="font-medium">Tahun</TableHead>
-                  <TableHead className="font-medium">Status</TableHead>
-                  <TableHead className="w-24 font-medium">Aksi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6}>
-                      <div className="flex flex-col items-center justify-center py-16 text-center">
-                        <CalendarDays className="size-10 text-muted-foreground/40 mb-3" />
-                        <p className="text-base font-medium text-muted-foreground">Belum ada kegiatan</p>
-                        <p className="text-sm text-muted-foreground/60 mt-1 mb-4">
-                          {hasFilter ? "Coba ubah filter atau " : ""} Tambah kegiatan baru untuk memulai
-                        </p>
-                        {!hasFilter && (
-                          <Button asChild variant="outline" size="sm">
-                            <Link href="/dashboard/kegiatan/input"><Plus className="size-4 mr-1.5" />Tambah Kegiatan</Link>
-                          </Button>
-                        )}
+            {/* Mobile View */}
+            <div className="divide-y divide-border sm:hidden">
+              {data.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+                  <CalendarDays className="size-10 text-muted-foreground/40 mb-3" />
+                  <p className="text-base font-medium text-muted-foreground">Belum ada kegiatan</p>
+                  <p className="text-sm text-muted-foreground/60 mt-1 mb-4">
+                    {hasFilter ? "Coba ubah filter atau " : ""} Tambah kegiatan baru untuk memulai
+                  </p>
+                  {!hasFilter && (
+                    <Button asChild variant="outline" size="sm">
+                      <Link href="/dashboard/kegiatan/input"><Plus className="size-4 mr-1.5" />Tambah Kegiatan</Link>
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                data.map((item) => (
+                  <div key={item.id} className="p-4 flex flex-col gap-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="font-semibold text-foreground">{item.title}</h3>
+                        <p className="text-xs text-muted-foreground mt-1">{item.kategori_name}</p>
                       </div>
-                    </TableCell>
+                      <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                        item.is_published
+                          ? 'bg-green-50 text-green-700 border border-green-200/50'
+                          : 'bg-zinc-50 text-zinc-500 border border-zinc-200/50'
+                      }`}>
+                        {item.is_published ? 'Published' : 'Draft'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-4 mt-1 border-t border-black/5 pt-3">
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(item.date + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" asChild className="h-8 w-8 hover:bg-accent">
+                          <Link href={`/dashboard/kegiatan/input?id=${item.id}`}>
+                            <Pencil className="size-3.5" />
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(item.id)}
+                          className="h-8 w-8 hover:bg-red-50 hover:text-red-600"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Desktop View */}
+            <div className="hidden sm:block">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/30">
+                    <TableHead className="font-medium">Judul</TableHead>
+                    <TableHead className="font-medium">Kategori</TableHead>
+                    <TableHead className="font-medium">Tanggal</TableHead>
+                    <TableHead className="font-medium">Tahun</TableHead>
+                    <TableHead className="font-medium">Status</TableHead>
+                    <TableHead className="w-24 font-medium">Aksi</TableHead>
                   </TableRow>
-                ) : (
-                  data.map((item) => (
-                    <TableRow key={item.id} className="group">
-                      <TableCell className="font-medium">{item.title}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{item.kategori_name}</TableCell>
-                      <TableCell className="text-sm">
-                        {new Date(item.date + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                      </TableCell>
-                      <TableCell className="text-sm">{item.year}</TableCell>
-                      <TableCell>
-                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-                          item.is_published
-                            ? 'bg-green-50 text-green-700 border border-green-200/50'
-                            : 'bg-zinc-50 text-zinc-500 border border-zinc-200/50'
-                        }`}>
-                          {item.is_published ? 'Published' : 'Draft'}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                          <Button variant="ghost" size="icon" asChild className="hover:bg-accent">
-                            <Link href={`/dashboard/kegiatan/input?id=${item.id}`}>
-                              <Pencil className="size-3.5" />
-                            </Link>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(item.id)}
-                            className="hover:bg-red-50 hover:text-red-600"
-                          >
-                            <Trash2 className="size-3.5" />
-                          </Button>
+                </TableHeader>
+                <TableBody>
+                  {data.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6}>
+                        <div className="flex flex-col items-center justify-center py-16 text-center">
+                          <CalendarDays className="size-10 text-muted-foreground/40 mb-3" />
+                          <p className="text-base font-medium text-muted-foreground">Belum ada kegiatan</p>
+                          <p className="text-sm text-muted-foreground/60 mt-1 mb-4">
+                            {hasFilter ? "Coba ubah filter atau " : ""} Tambah kegiatan baru untuk memulai
+                          </p>
+                          {!hasFilter && (
+                            <Button asChild variant="outline" size="sm">
+                              <Link href="/dashboard/kegiatan/input"><Plus className="size-4 mr-1.5" />Tambah Kegiatan</Link>
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    data.map((item) => (
+                      <TableRow key={item.id} className="group">
+                        <TableCell className="font-medium">{item.title}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{item.kategori_name}</TableCell>
+                        <TableCell className="text-sm">
+                          {new Date(item.date + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                        </TableCell>
+                        <TableCell className="text-sm">{item.year}</TableCell>
+                        <TableCell>
+                          <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                            item.is_published
+                              ? 'bg-green-50 text-green-700 border border-green-200/50'
+                              : 'bg-zinc-50 text-zinc-500 border border-zinc-200/50'
+                          }`}>
+                            {item.is_published ? 'Published' : 'Draft'}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                            <Button variant="ghost" size="icon" asChild className="hover:bg-accent">
+                              <Link href={`/dashboard/kegiatan/input?id=${item.id}`}>
+                                <Pencil className="size-3.5" />
+                              </Link>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDelete(item.id)}
+                              className="hover:bg-red-50 hover:text-red-600"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </div>

@@ -3,21 +3,13 @@
 import * as React from "react"
 import {
     Newspaper,
-    Command,
-    LifeBuoy,
-    Send,
-    File,
     Grid2X2,
     DatabaseZap,
     Ghost,
     Activity,
-    Triangle,
-    Zap,
 } from "lucide-react"
 
 import { NavMain } from "@/components/sidebar/nav-main"
-import { NavProjects } from "@/components/sidebar/nav-projects"
-import { NavSecondary } from "@/components/sidebar/nav-secondary"
 import { NavUser } from "@/components/sidebar/nav-user"
 import {
     Sidebar,
@@ -28,6 +20,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import Image from "next/image"
 import Link from "next/link"
 
 const data = {
@@ -44,13 +37,12 @@ const data = {
         },
         {
             title: "Data",
-            url: "/dashboard/data",  // Tambahkan /dashboard
+            url: "/dashboard/data",
             icon: DatabaseZap,
-            isActive: true,
             items: [
                 {
                     title: "RISMA",
-                    url: "/dashboard/data/risma",  // Sekarang /dashboard/data/risma
+                    url: "/dashboard/data/risma",
                 },
                 {
                     title: "PLN",
@@ -64,27 +56,22 @@ const data = {
         },
         {
             title: "Haul",
-            url: "/dashboard/haul",  // Tambahkan /dashboard
+            url: "/dashboard/haul/data",
             icon: Ghost,
-            isActive: true,
             items: [
                 {
                     title: "Input Arwah",
-                    url: "/dashboard/haul/input",  // Sekarang /dashboard/haul/input
+                    url: "/dashboard/haul/input",
                 },
                 {
                     title: "Arsip Data",
                     url: "/dashboard/haul/data",
                 },
-                {
-                    title: "Log",
-                    url: "/dashboard/haul/log",
-                },
             ],
         },
         {
             title: "Artikel",
-            url: "/dashboard/artikel",  // Tambahkan /dashboard
+            url: "/dashboard/artikel",
             icon: Newspaper,
         },
         {
@@ -112,63 +99,32 @@ const data = {
             ],
         },
     ],
-    navSecondary: [
-        {
-            title: "Support",
-            url: "#",
-            icon: LifeBuoy,
-        },
-        {
-            title: "Feedback",
-            url: "#",
-            icon: Send,
-        },
-    ],
-    projects: [
-        {
-            name: "Undangan",
-            url: "#",
-            icon: File,
-        },
-        {
-            name: "Lelayu",
-            url: "#",
-            icon: Triangle,
-        },
-        {
-            name: "Tagihan Listrik",
-            url: "#",
-            icon: Zap,
-        },
-    ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
-        <Sidebar variant="inset" {...props}>
-            <SidebarHeader>
+        <Sidebar variant="inset" className="[&_[data-sidebar=sidebar]]:bg-white [&_[data-sidebar=sidebar]]:ring-1 [&_[data-sidebar=sidebar]]:ring-black/5" {...props}>
+            <SidebarHeader className="p-3">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
+                        <SidebarMenuButton size="lg" asChild className="h-14 rounded-2xl bg-white px-3 shadow-none border border-black/8 hover:bg-white">
                             <Link href="/">
-                                <div className="bg-zinc-800 text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                                    <Command className="size-4" />
+                                <div className="flex aspect-square size-9 items-center justify-center overflow-hidden rounded-xl bg-[oklch(0.457_0.24_277.023)] shadow-sm shadow-black/10">
+                                    <Image src="/logo-risma.png" alt="RISMA" width={28} height={28} className="object-contain" />
                                 </div>
                                 <div className="grid flex-1 text-left text-sm leading-tight">
-                                    <span className="truncate font-medium">RISMA</span>
-                                    <span className="truncate text-xs">Kanggotan Lor</span>
+                                    <span className="truncate font-bold tracking-tight">RISMA</span>
+                                    <span className="truncate text-xs text-muted-foreground">Kanggotan Lor</span>
                                 </div>
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
-            <SidebarContent>
+            <SidebarContent className="px-0">
                 <NavMain items={data.navMain} />
-                <NavProjects projects={data.projects} />
-                <NavSecondary items={data.navSecondary} className="mt-auto" />
             </SidebarContent>
-            <SidebarFooter>
+            <SidebarFooter className="p-3">
                 <NavUser user={data.user} />
             </SidebarFooter>
         </Sidebar>
