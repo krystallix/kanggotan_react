@@ -34,7 +34,7 @@ export function NavSecondary({
                                 asChild
                                 size="sm"
                                 isActive={pathname === item.url}
-                                className="h-9 rounded-2xl px-3 text-xs font-semibold text-black/45 transition-all duration-200 hover:bg-black/5 hover:text-black data-active:bg-black data-active:text-white"
+                                className="h-9 rounded-xl px-3 text-xs font-semibold text-black/60 transition-all duration-200 hover:bg-black/5 hover:text-black data-active:bg-transparent data-active:text-[oklch(0.457_0.24_277.023)] data-active:font-black"
                             >
                                 <Link href={item.url}>
                                     <item.icon className="size-4" />

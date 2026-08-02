@@ -49,7 +49,7 @@ export function NavMain({
                                     asChild
                                     tooltip={item.title}
                                     isActive={active}
-                                    className="h-10 rounded-xl px-3 text-sm font-semibold text-black/60 transition-all duration-200 hover:bg-black/5 hover:text-black data-active:bg-[oklch(0.457_0.24_277.023)/0.08] data-active:text-[oklch(0.457_0.24_277.023)]"
+                                    className="h-10 rounded-xl px-3 text-sm font-semibold text-black/60 transition-all duration-200 hover:bg-black/5 hover:text-black data-active:bg-transparent data-active:text-[oklch(0.457_0.24_277.023)] data-active:font-black"
                                 >
                                     <Link href={item.url}>
                                         <item.icon className="size-4" />
@@ -73,7 +73,7 @@ export function NavMain({
                                                             <SidebarMenuSubButton
                                                                 asChild
                                                                 isActive={subActive}
-                                                                className="h-8 rounded-lg px-3 text-xs font-semibold text-black/45 hover:bg-black/5 hover:text-black data-active:bg-black/5 data-active:text-black"
+                                                                className="h-8 rounded-lg px-3 text-xs font-semibold text-black/45 hover:bg-black/5 hover:text-black data-active:bg-transparent data-active:text-[oklch(0.457_0.24_277.023)] data-active:font-black"
                                                             >
                                                                 <Link href={subItem.url}>
                                                                     <span>{subItem.title}</span>
