@@ -18,7 +18,7 @@ const DashContent = memo(({ children }: { children: ReactNode }) => {
         <SidebarInset className="relative overflow-hidden bg-white">
             <SpeedInsights />
             <NextTopLoader color="oklch(0.457 0.24 277.023)" showSpinner={false} height={2} />
-            <header className="sticky top-0 z-40 mx-3 mt-3 flex h-16 shrink-0 items-center gap-2 rounded-2xl border border-black/8 bg-white/80 shadow-none backdrop-blur-xl">
+            <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b border-black/8 bg-white/80 backdrop-blur-xl">
                 <div className="flex items-center gap-2 px-4">
                     <SidebarTrigger className="-ml-1" />
                     <Separator
