@@ -98,7 +98,7 @@ export default function InputKegiatan() {
 
   return (
     <DashLayout>
-      <div className="py-6">
+      <div className="space-y-6">
         <div className="flex items-center gap-4 mb-8">
           <Button variant="ghost" size="icon" asChild className="shrink-0">
             <Link href="/dashboard/kegiatan"><ArrowLeft className="size-4" /></Link>

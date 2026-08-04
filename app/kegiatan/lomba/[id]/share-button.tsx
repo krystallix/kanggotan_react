@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState, type ReactNode } from "react"
+import { useRef, useState, type ReactNode } from "react"
 import { Check, Loader2, Share2, Trophy } from "lucide-react"
 import { toJpeg } from "html-to-image"
 import { toast } from "sonner"
@@ -119,11 +119,7 @@ export function ShareButton({
   const [shared, setShared] = useState<"standings" | "schedule" | null>(null)
   const [scheduleMode, setScheduleMode] = useState<ScheduleMode>("nearest")
   const [previewType, setPreviewType] = useState<"standings" | "schedule" | null>(null)
-  const [pageUrl, setPageUrl] = useState("")
-
-  useEffect(() => {
-    setPageUrl(window.location.href)
-  }, [])
+  const [pageUrl] = useState(() => typeof window === "undefined" ? "" : window.location.href)
 
   const nowWib = getWibStamp()
   const upcomingMatches = matches

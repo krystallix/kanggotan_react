@@ -13,13 +13,12 @@ import { Toaster } from "@/components/ui/sonner"
 import DashBreadcrumb from "@/components/layout/dash-breadcrumb"
 import { memo, ReactNode } from "react"
 
-// Isolate content dari sidebar context
 const DashContent = memo(({ children }: { children: ReactNode }) => {
     return (
-        <SidebarInset>
+        <SidebarInset className="relative overflow-hidden bg-white">
             <SpeedInsights />
-            <NextTopLoader />
-            <header className="flex h-16 shrink-0 items-center gap-2">
+            <NextTopLoader color="oklch(0.457 0.24 277.023)" showSpinner={false} height={2} />
+            <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b border-black/8 bg-white/80 backdrop-blur-xl">
                 <div className="flex items-center gap-2 px-4">
                     <SidebarTrigger className="-ml-1" />
                     <Separator
@@ -29,9 +28,11 @@ const DashContent = memo(({ children }: { children: ReactNode }) => {
                     <DashBreadcrumb />
                 </div>
             </header>
-            <div className="px-4">
-                {children}
-            </div>
+            <main className="relative z-10 px-3 pb-8 pt-4 sm:px-6">
+                <div className="mx-auto max-w-7xl">
+                    {children}
+                </div>
+            </main>
         </SidebarInset>
     );
 });

@@ -374,7 +374,7 @@ export default async function LombaDetailPage({ params }: PageProps) {
                 <h2 className="text-xl font-bold tracking-tight">Sponsor kegiatan</h2>
                 <p className="text-sm text-muted-foreground mt-1">Terima kasih kepada para sponsor yang mendukung kesuksesan kegiatan ini.</p>
               </div>
-              <div className="relative flex overflow-hidden border-y border-border/50 py-7 select-none">
+              <div className="relative left-1/2 flex w-screen -translate-x-1/2 overflow-hidden border-y border-border/50 py-7 select-none">
                 <div className="flex w-max animate-marquee items-center">
                   {[...sponsors, ...sponsors].map((sponsor, idx) => {
                     const content = sponsor.logo_url ? (
