@@ -48,19 +48,15 @@ export default function KegiatanDashboardPage() {
   }
 
   const sortedData = [...data].sort((a, b) => {
-    let valA = a[sortKey]
-    let valB = b[sortKey]
-
     if (sortKey === "date") {
       const timeA = a.date ? new Date(a.date).getTime() : 0
       const timeB = b.date ? new Date(b.date).getTime() : 0
       return sortOrder === "asc" ? timeA - timeB : timeB - timeA
     }
 
-    if (typeof valA === "string") {
-      valA = valA.toLowerCase()
-      valB = (valB as string || "").toLowerCase()
-    }
+    const raw = (v: unknown) => (v == null ? "" : String(v).toLowerCase())
+    const valA = raw(a[sortKey])
+    const valB = raw(b[sortKey])
 
     if (valA < valB) return sortOrder === "asc" ? -1 : 1
     if (valA > valB) return sortOrder === "asc" ? 1 : -1

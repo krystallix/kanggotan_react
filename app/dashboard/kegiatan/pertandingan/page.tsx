@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import DashLayout from "@/components/layout/dash-layout"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Plus, Pencil, Trash2, Swords, CalendarDays, Clock, MapPin, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 import Link from "next/link"
 import { getAllPertandinganPaginatedClient, deletePertandingan } from "@/lib/supabase/queries-client"
@@ -40,33 +39,32 @@ export default function PertandinganPage() {
   }
 
   const sortedData = [...data].sort((a, b) => {
-    let valA: any
-    let valB: any
+    let rawValA: any
+    let rawValB: any
 
     if (sortKey === "lomba_nama") {
-      valA = a.lomba?.nama || ""
-      valB = b.lomba?.nama || ""
+      rawValA = a.lomba?.nama
+      rawValB = b.lomba?.nama
     } else if (sortKey === "tim") {
-      valA = a.tim_a || ""
-      valB = b.tim_a || ""
+      rawValA = a.tim_a
+      rawValB = b.tim_a
     } else if (sortKey === "skor") {
-      valA = a.skor_a !== null ? a.skor_a : -1
-      valB = b.skor_a !== null ? b.skor_a : -1
+      rawValA = a.skor_a
+      rawValB = b.skor_a
     } else {
-      valA = a[sortKey as keyof Pertandingan]
-      valB = b[sortKey as keyof Pertandingan]
+      rawValA = a[sortKey as keyof Pertandingan]
+      rawValB = b[sortKey as keyof Pertandingan]
     }
 
     if (sortKey === "tanggal") {
-      const timeA = valA ? new Date(valA).getTime() : 0
-      const timeB = valB ? new Date(valB).getTime() : 0
+      const timeA = rawValA ? new Date(rawValA).getTime() : 0
+      const timeB = rawValB ? new Date(rawValB).getTime() : 0
       return sortOrder === "asc" ? timeA - timeB : timeB - timeA
     }
 
-    if (typeof valA === "string") {
-      valA = valA.toLowerCase()
-      valB = (valB as string || "").toLowerCase()
-    }
+    const clean = (v: unknown) => (v == null ? "" : String(v).toLowerCase())
+    const valA = clean(rawValA)
+    const valB = clean(rawValB)
 
     if (valA < valB) return sortOrder === "asc" ? -1 : 1
     if (valA > valB) return sortOrder === "asc" ? 1 : -1

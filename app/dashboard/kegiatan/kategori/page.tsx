@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import DashLayout from "@/components/layout/dash-layout"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Plus, Pencil, Trash2, GripVertical, Tags, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 import { getKategoriAllClient, insertKategori, updateKategori, deleteKategori } from "@/lib/supabase/queries-client"
@@ -48,13 +47,9 @@ export default function KategoriPage() {
   }
 
   const sortedData = [...kategoriList].sort((a, b) => {
-    let valA = a[sortKey]
-    let valB = b[sortKey]
-
-    if (typeof valA === "string") {
-      valA = valA.toLowerCase()
-      valB = (valB as string || "").toLowerCase()
-    }
+    const clean = (v: unknown) => (v == null ? "" : String(v).toLowerCase())
+    const valA = clean(a[sortKey])
+    const valB = clean(b[sortKey])
 
     if (valA < valB) return sortOrder === "asc" ? -1 : 1
     if (valA > valB) return sortOrder === "asc" ? 1 : -1

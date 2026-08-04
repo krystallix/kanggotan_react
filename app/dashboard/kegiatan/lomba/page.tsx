@@ -39,27 +39,18 @@ export default function LombaPage() {
   }
 
   const sortedData = [...data].sort((a, b) => {
-    let valA: any
-    let valB: any
-
-    if (sortKey === "kegiatan_title") {
-      valA = a.kegiatan?.title || ""
-      valB = b.kegiatan?.title || ""
-    } else {
-      valA = a[sortKey as keyof Lomba]
-      valB = b[sortKey as keyof Lomba]
-    }
+    let rawValA = sortKey === "kegiatan_title" ? a.kegiatan?.title : a[sortKey as keyof Lomba]
+    let rawValB = sortKey === "kegiatan_title" ? b.kegiatan?.title : b[sortKey as keyof Lomba]
 
     if (sortKey === "tanggal") {
-      const timeA = valA ? new Date(valA).getTime() : 0
-      const timeB = valB ? new Date(valB).getTime() : 0
+      const timeA = rawValA ? new Date(rawValA as string).getTime() : 0
+      const timeB = rawValB ? new Date(rawValB as string).getTime() : 0
       return sortOrder === "asc" ? timeA - timeB : timeB - timeA
     }
 
-    if (typeof valA === "string") {
-      valA = valA.toLowerCase()
-      valB = (valB as string || "").toLowerCase()
-    }
+    const clean = (v: unknown) => (v == null ? "" : String(v).toLowerCase())
+    const valA = clean(rawValA)
+    const valB = clean(rawValB)
 
     if (valA < valB) return sortOrder === "asc" ? -1 : 1
     if (valA > valB) return sortOrder === "asc" ? 1 : -1
