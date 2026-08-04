@@ -5,7 +5,7 @@ import DashLayout from "@/components/layout/dash-layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Plus, Pencil, Trash2, GripVertical, Tags } from "lucide-react"
+import { Plus, Pencil, Trash2, GripVertical, Tags, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 import { getKategoriAllClient, insertKategori, updateKategori, deleteKategori } from "@/lib/supabase/queries-client"
 import type { KegiatanKategori } from "@/types/kegiatan"
 import { toast } from "sonner"
@@ -17,6 +17,9 @@ import {
 } from "@/components/ui/dialog"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 
+type SortKey = "sort_order" | "name" | "description" | "icon"
+type SortOrder = "asc" | "desc"
+
 export default function KategoriPage() {
   const [kategoriList, setKategoriList] = useState<KegiatanKategori[]>([])
   const [open, setOpen] = useState(false)
@@ -24,7 +27,9 @@ export default function KategoriPage() {
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [icon, setIcon] = useState("CalendarDays")
-  const [sortOrder, setSortOrder] = useState(0)
+  const [sortOrderField, setSortOrderField] = useState(0)
+  const [sortKey, setSortKey] = useState<SortKey>("sort_order")
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
 
   const fetchData = async () => {
     const data = await getKategoriAllClient()
@@ -33,12 +38,44 @@ export default function KategoriPage() {
 
   useEffect(() => { fetchData() }, [])
 
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+    } else {
+      setSortKey(key)
+      setSortOrder("asc")
+    }
+  }
+
+  const sortedData = [...kategoriList].sort((a, b) => {
+    let valA = a[sortKey]
+    let valB = b[sortKey]
+
+    if (typeof valA === "string") {
+      valA = valA.toLowerCase()
+      valB = (valB as string || "").toLowerCase()
+    }
+
+    if (valA < valB) return sortOrder === "asc" ? -1 : 1
+    if (valA > valB) return sortOrder === "asc" ? 1 : -1
+    return 0
+  })
+
+  const SortIcon = ({ col }: { col: SortKey }) => {
+    if (sortKey !== col) return <ArrowUpDown className="ml-1.5 size-3.5 text-muted-foreground/60" />
+    return sortOrder === "asc" ? (
+      <ArrowUp className="ml-1.5 size-3.5 text-primary" />
+    ) : (
+      <ArrowDown className="ml-1.5 size-3.5 text-primary" />
+    )
+  }
+
   const openAdd = () => {
     setEditItem(null)
     setName("")
     setDescription("")
     setIcon("CalendarDays")
-    setSortOrder(kategoriList.length)
+    setSortOrderField(kategoriList.length)
     setOpen(true)
   }
 
@@ -47,7 +84,7 @@ export default function KategoriPage() {
     setName(item.name)
     setDescription(item.description || "")
     setIcon(item.icon)
-    setSortOrder(item.sort_order)
+    setSortOrderField(item.sort_order)
     setOpen(true)
   }
 
@@ -55,10 +92,10 @@ export default function KategoriPage() {
     if (!name.trim()) { toast.error("Nama kategori wajib diisi"); return }
     try {
       if (editItem) {
-        await updateKategori(editItem.id, { name, description, icon, sort_order: sortOrder, is_active: true })
+        await updateKategori(editItem.id, { name, description, icon, sort_order: sortOrderField, is_active: true })
         toast.success("Kategori berhasil diupdate")
       } else {
-        await insertKategori({ name, description, icon, sort_order: sortOrder, is_active: true })
+        await insertKategori({ name, description, icon, sort_order: sortOrderField, is_active: true })
         toast.success("Kategori berhasil ditambahkan")
       }
       setOpen(false)
@@ -91,60 +128,66 @@ export default function KategoriPage() {
           <Button onClick={openAdd}><Plus className="size-4 mr-2" />Tambah Kategori</Button>
         </div>
 
-        <Card className="overflow-hidden rounded-2xl border border-black/8 bg-white shadow-none">
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/30">
-                  <TableHead className="w-12 font-medium">#</TableHead>
-                  <TableHead className="font-medium">Nama</TableHead>
-                  <TableHead className="font-medium">Deskripsi</TableHead>
-                  <TableHead className="font-medium">Icon</TableHead>
-                  <TableHead className="w-24 font-medium">Aksi</TableHead>
+        <div className="overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead onClick={() => handleSort("sort_order")} className="w-12 font-semibold text-foreground cursor-pointer select-none">
+                  <span className="inline-flex items-center"># <SortIcon col="sort_order" /></span>
+                </TableHead>
+                <TableHead onClick={() => handleSort("name")} className="font-semibold text-foreground cursor-pointer select-none">
+                  <span className="inline-flex items-center">Nama <SortIcon col="name" /></span>
+                </TableHead>
+                <TableHead onClick={() => handleSort("description")} className="font-semibold text-foreground cursor-pointer select-none">
+                  <span className="inline-flex items-center">Deskripsi <SortIcon col="description" /></span>
+                </TableHead>
+                <TableHead onClick={() => handleSort("icon")} className="font-semibold text-foreground cursor-pointer select-none">
+                  <span className="inline-flex items-center">Icon <SortIcon col="icon" /></span>
+                </TableHead>
+                <TableHead className="w-24 font-semibold text-foreground">Aksi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedData.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5}>
+                    <div className="flex flex-col items-center justify-center py-16 text-center">
+                      <Tags className="size-10 text-muted-foreground/40 mb-3" />
+                      <p className="text-base font-medium text-muted-foreground">Belum ada kategori</p>
+                      <p className="text-sm text-muted-foreground/60 mt-1 mb-4">Buat kategori kegiatan pertama</p>
+                      <Button variant="outline" size="sm" onClick={openAdd}>
+                        <Plus className="size-4 mr-1.5" />Tambah Kategori
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {kategoriList.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5}>
-                      <div className="flex flex-col items-center justify-center py-16 text-center">
-                        <Tags className="size-10 text-muted-foreground/40 mb-3" />
-                        <p className="text-base font-medium text-muted-foreground">Belum ada kategori</p>
-                        <p className="text-sm text-muted-foreground/60 mt-1 mb-4">Buat kategori kegiatan pertama</p>
-                        <Button variant="outline" size="sm" onClick={openAdd}>
-                          <Plus className="size-4 mr-1.5" />Tambah Kategori
+              ) : (
+                sortedData.map((k) => (
+                  <TableRow key={k.id} className="group">
+                    <TableCell className="text-muted-foreground">
+                      <GripVertical className="size-4" />
+                    </TableCell>
+                    <TableCell className="font-medium">{k.name}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
+                      {k.description || <span className="italic text-muted-foreground/50">—</span>}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground font-mono">{k.icon}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                        <Button variant="ghost" size="icon" onClick={() => openEdit(k)} className="hover:bg-accent">
+                          <Pencil className="size-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(k.id)} className="hover:bg-red-50 hover:text-red-600">
+                          <Trash2 className="size-3.5" />
                         </Button>
                       </div>
                     </TableCell>
                   </TableRow>
-                ) : (
-                  kategoriList.map((k) => (
-                    <TableRow key={k.id} className="group">
-                      <TableCell className="text-muted-foreground">
-                        <GripVertical className="size-4" />
-                      </TableCell>
-                      <TableCell className="font-medium">{k.name}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
-                        {k.description || <span className="italic text-muted-foreground/50">—</span>}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground font-mono">{k.icon}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                          <Button variant="ghost" size="icon" onClick={() => openEdit(k)} className="hover:bg-accent">
-                            <Pencil className="size-3.5" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDelete(k.id)} className="hover:bg-red-50 hover:text-red-600">
-                            <Trash2 className="size-3.5" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="sm:max-w-md">
@@ -167,7 +210,7 @@ export default function KategoriPage() {
                 </Field>
                 <Field>
                   <FieldLabel>Urutan</FieldLabel>
-                  <Input type="number" value={sortOrder} onChange={(e) => setSortOrder(Number(e.target.value))} />
+                  <Input type="number" value={sortOrderField} onChange={(e) => setSortOrderField(Number(e.target.value))} />
                 </Field>
               </div>
             </FieldGroup>

@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react"
 import DashLayout from "@/components/layout/dash-layout"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Plus, Pencil, Trash2, CalendarDays, Filter, X } from "lucide-react"
+import { Plus, Pencil, Trash2, CalendarDays, Filter, X, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 import Link from "next/link"
 import { getKategoriAllClient, getAllKegiatanPaginatedClient, deleteKegiatan } from "@/lib/supabase/queries-client"
 import type { KegiatanWithKategori } from "@/types/kegiatan"
@@ -13,12 +12,17 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table"
 
+type SortKey = "title" | "kategori_name" | "date" | "year" | "is_published"
+type SortOrder = "asc" | "desc"
+
 export default function KegiatanDashboardPage() {
   const [data, setData] = useState<(KegiatanWithKategori & { kategori_name: string })[]>([])
   const [total, setTotal] = useState(0)
   const [kategoriList, setKategoriList] = useState<{ id: number; name: string }[]>([])
   const [filterYear, setFilterYear] = useState<number | undefined>(undefined)
   const [filterKategori, setFilterKategori] = useState<number | undefined>(undefined)
+  const [sortKey, setSortKey] = useState<SortKey>("date")
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc")
 
   const fetchData = async () => {
     const res = await getAllKegiatanPaginatedClient(1, 50, filterYear, filterKategori)
@@ -33,6 +37,44 @@ export default function KegiatanDashboardPage() {
   useEffect(() => {
     fetchData()
   }, [filterYear, filterKategori])
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+    } else {
+      setSortKey(key)
+      setSortOrder("desc")
+    }
+  }
+
+  const sortedData = [...data].sort((a, b) => {
+    let valA = a[sortKey]
+    let valB = b[sortKey]
+
+    if (sortKey === "date") {
+      const timeA = a.date ? new Date(a.date).getTime() : 0
+      const timeB = b.date ? new Date(b.date).getTime() : 0
+      return sortOrder === "asc" ? timeA - timeB : timeB - timeA
+    }
+
+    if (typeof valA === "string") {
+      valA = valA.toLowerCase()
+      valB = (valB as string || "").toLowerCase()
+    }
+
+    if (valA < valB) return sortOrder === "asc" ? -1 : 1
+    if (valA > valB) return sortOrder === "asc" ? 1 : -1
+    return 0
+  })
+
+  const SortIcon = ({ col }: { col: SortKey }) => {
+    if (sortKey !== col) return <ArrowUpDown className="ml-1.5 size-3.5 text-muted-foreground/60" />
+    return sortOrder === "asc" ? (
+      <ArrowUp className="ml-1.5 size-3.5 text-primary" />
+    ) : (
+      <ArrowDown className="ml-1.5 size-3.5 text-primary" />
+    )
+  }
 
   const handleDelete = async (id: number) => {
     try {
@@ -106,138 +148,146 @@ export default function KegiatanDashboardPage() {
         </div>
 
         {/* Table */}
-        <Card className="overflow-hidden rounded-2xl border border-black/8 bg-white shadow-none">
-          <CardContent className="p-0">
-            {/* Mobile View */}
-            <div className="divide-y divide-border sm:hidden">
-              {data.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center px-4">
-                  <CalendarDays className="size-10 text-muted-foreground/40 mb-3" />
-                  <p className="text-base font-medium text-muted-foreground">Belum ada kegiatan</p>
-                  <p className="text-sm text-muted-foreground/60 mt-1 mb-4">
-                    {hasFilter ? "Coba ubah filter atau " : ""} Tambah kegiatan baru untuk memulai
-                  </p>
-                  {!hasFilter && (
-                    <Button asChild variant="outline" size="sm">
-                      <Link href="/dashboard/kegiatan/input"><Plus className="size-4 mr-1.5" />Tambah Kegiatan</Link>
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                data.map((item) => (
-                  <div key={item.id} className="p-4 flex flex-col gap-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h3 className="font-semibold text-foreground">{item.title}</h3>
-                        <p className="text-xs text-muted-foreground mt-1">{item.kategori_name}</p>
-                      </div>
-                      <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                        item.is_published
-                          ? 'bg-green-50 text-green-700 border border-green-200/50'
-                          : 'bg-zinc-50 text-zinc-500 border border-zinc-200/50'
-                      }`}>
-                        {item.is_published ? 'Published' : 'Draft'}
-                      </span>
+        <div className="overflow-hidden">
+          {/* Mobile View */}
+          <div className="divide-y divide-border sm:hidden">
+            {sortedData.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+                <CalendarDays className="size-10 text-muted-foreground/40 mb-3" />
+                <p className="text-base font-medium text-muted-foreground">Belum ada kegiatan</p>
+                <p className="text-sm text-muted-foreground/60 mt-1 mb-4">
+                  {hasFilter ? "Coba ubah filter atau " : ""} Tambah kegiatan baru untuk memulai
+                </p>
+                {!hasFilter && (
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/dashboard/kegiatan/input"><Plus className="size-4 mr-1.5" />Tambah Kegiatan</Link>
+                  </Button>
+                )}
+              </div>
+            ) : (
+              sortedData.map((item) => (
+                <div key={item.id} className="p-4 flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="font-semibold text-foreground">{item.title}</h3>
+                      <p className="text-xs text-muted-foreground mt-1">{item.kategori_name}</p>
                     </div>
-                    <div className="flex items-center justify-between gap-4 mt-1 border-t border-black/5 pt-3">
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(item.date + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </span>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" asChild className="h-8 w-8 hover:bg-accent">
-                          <Link href={`/dashboard/kegiatan/input?id=${item.id}`}>
-                            <Pencil className="size-3.5" />
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(item.id)}
-                          className="h-8 w-8 hover:bg-red-50 hover:text-red-600"
-                        >
-                          <Trash2 className="size-3.5" />
-                        </Button>
-                      </div>
+                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                      item.is_published
+                        ? 'bg-green-50 text-green-700 border border-green-200/50'
+                        : 'bg-zinc-50 text-zinc-500 border border-zinc-200/50'
+                    }`}>
+                      {item.is_published ? 'Published' : 'Draft'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-4 mt-1 border-t border-black/5 pt-3">
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(item.date + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" asChild className="h-8 w-8 hover:bg-accent">
+                        <Link href={`/dashboard/kegiatan/input?id=${item.id}`}>
+                          <Pencil className="size-3.5" />
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(item.id)}
+                        className="h-8 w-8 hover:bg-red-50 hover:text-red-600"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
+                </div>
+              ))
+            )}
+          </div>
 
-            {/* Desktop View */}
-            <div className="hidden sm:block">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/30">
-                    <TableHead className="font-medium">Judul</TableHead>
-                    <TableHead className="font-medium">Kategori</TableHead>
-                    <TableHead className="font-medium">Tanggal</TableHead>
-                    <TableHead className="font-medium">Tahun</TableHead>
-                    <TableHead className="font-medium">Status</TableHead>
-                    <TableHead className="w-24 font-medium">Aksi</TableHead>
+          {/* Desktop View */}
+          <div className="hidden sm:block">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead onClick={() => handleSort("title")} className="font-semibold text-foreground cursor-pointer select-none">
+                    <span className="inline-flex items-center">Judul <SortIcon col="title" /></span>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("kategori_name")} className="font-semibold text-foreground cursor-pointer select-none">
+                    <span className="inline-flex items-center">Kategori <SortIcon col="kategori_name" /></span>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("date")} className="font-semibold text-foreground cursor-pointer select-none">
+                    <span className="inline-flex items-center">Tanggal <SortIcon col="date" /></span>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("year")} className="font-semibold text-foreground cursor-pointer select-none">
+                    <span className="inline-flex items-center">Tahun <SortIcon col="year" /></span>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("is_published")} className="font-semibold text-foreground cursor-pointer select-none">
+                    <span className="inline-flex items-center">Status <SortIcon col="is_published" /></span>
+                  </TableHead>
+                  <TableHead className="w-24 font-semibold text-foreground">Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedData.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6}>
+                      <div className="flex flex-col items-center justify-center py-16 text-center">
+                        <CalendarDays className="size-10 text-muted-foreground/40 mb-3" />
+                        <p className="text-base font-medium text-muted-foreground">Belum ada kegiatan</p>
+                        <p className="text-sm text-muted-foreground/60 mt-1 mb-4">
+                          {hasFilter ? "Coba ubah filter atau " : ""} Tambah kegiatan baru untuk memulai
+                        </p>
+                        {!hasFilter && (
+                          <Button asChild variant="outline" size="sm">
+                            <Link href="/dashboard/kegiatan/input"><Plus className="size-4 mr-1.5" />Tambah Kegiatan</Link>
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6}>
-                        <div className="flex flex-col items-center justify-center py-16 text-center">
-                          <CalendarDays className="size-10 text-muted-foreground/40 mb-3" />
-                          <p className="text-base font-medium text-muted-foreground">Belum ada kegiatan</p>
-                          <p className="text-sm text-muted-foreground/60 mt-1 mb-4">
-                            {hasFilter ? "Coba ubah filter atau " : ""} Tambah kegiatan baru untuk memulai
-                          </p>
-                          {!hasFilter && (
-                            <Button asChild variant="outline" size="sm">
-                              <Link href="/dashboard/kegiatan/input"><Plus className="size-4 mr-1.5" />Tambah Kegiatan</Link>
-                            </Button>
-                          )}
+                ) : (
+                  sortedData.map((item) => (
+                    <TableRow key={item.id} className="group">
+                      <TableCell className="font-medium">{item.title}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{item.kategori_name}</TableCell>
+                      <TableCell className="text-sm">
+                        {new Date(item.date + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                      </TableCell>
+                      <TableCell className="text-sm">{item.year}</TableCell>
+                      <TableCell>
+                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                          item.is_published
+                            ? 'bg-green-50 text-green-700 border border-green-200/50'
+                            : 'bg-zinc-50 text-zinc-500 border border-zinc-200/50'
+                        }`}>
+                          {item.is_published ? 'Published' : 'Draft'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                          <Button variant="ghost" size="icon" asChild className="hover:bg-accent">
+                            <Link href={`/dashboard/kegiatan/input?id=${item.id}`}>
+                              <Pencil className="size-3.5" />
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(item.id)}
+                            className="hover:bg-red-50 hover:text-red-600"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
-                  ) : (
-                    data.map((item) => (
-                      <TableRow key={item.id} className="group">
-                        <TableCell className="font-medium">{item.title}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{item.kategori_name}</TableCell>
-                        <TableCell className="text-sm">
-                          {new Date(item.date + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                        </TableCell>
-                        <TableCell className="text-sm">{item.year}</TableCell>
-                        <TableCell>
-                          <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-                            item.is_published
-                              ? 'bg-green-50 text-green-700 border border-green-200/50'
-                              : 'bg-zinc-50 text-zinc-500 border border-zinc-200/50'
-                          }`}>
-                            {item.is_published ? 'Published' : 'Draft'}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                            <Button variant="ghost" size="icon" asChild className="hover:bg-accent">
-                              <Link href={`/dashboard/kegiatan/input?id=${item.id}`}>
-                                <Pencil className="size-3.5" />
-                              </Link>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDelete(item.id)}
-                              className="hover:bg-red-50 hover:text-red-600"
-                            >
-                              <Trash2 className="size-3.5" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
       </div>
     </DashLayout>
   )
