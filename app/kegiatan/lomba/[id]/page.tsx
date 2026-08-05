@@ -374,58 +374,71 @@ export default async function LombaDetailPage({ params }: PageProps) {
                 <h2 className="text-xl font-bold tracking-tight">Sponsor kegiatan</h2>
                 <p className="text-sm text-muted-foreground mt-1">Terima kasih kepada para sponsor yang mendukung kesuksesan kegiatan ini.</p>
               </div>
-              <div className="relative left-1/2 flex w-screen -translate-x-1/2 overflow-hidden border-y border-border/50 py-7 select-none">
-                <div className="flex w-max animate-marquee items-center">
-                  {[...sponsors, ...sponsors].map((sponsor, idx) => {
-                    const content = sponsor.logo_url ? (
-                      <img
-                        src={sponsor.logo_url}
-                        alt={sponsor.nama}
-                        className="h-10 w-auto object-contain opacity-60 transition-opacity duration-300 hover:opacity-100 active:opacity-100 lg:h-14"
-                      />
-                    ) : (
-                      <span className="text-sm font-bold tracking-tight text-foreground/60 transition-colors duration-300 hover:text-foreground active:text-foreground">{sponsor.nama}</span>
-                    )
 
-                    return (
-                      <Popover key={`${sponsor.id}-${idx}`}>
-                        <PopoverTrigger asChild>
-                          <button type="button" className="flex shrink-0 items-center justify-center px-8 lg:px-14">
-                            {content}
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-72 rounded-2xl p-4" sideOffset={10}>
-                          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{sponsor.nama}</p>
-                          <div className="mt-4 grid gap-2">
-                            {sponsor.lokasi_url && (
-                              <a
-                                href={sponsor.lokasi_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-                              >
-                                <MapPin className="size-4" />
-                                Buka lokasi
-                              </a>
-                            )}
-                            {sponsor.sosmed_url && (
-                              <a
-                                href={sponsor.sosmed_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-sm font-bold text-background transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-                              >
-                                <ExternalLink className="size-4" />
-                                Buka sosmed
-                              </a>
-                            )}
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    )
-                  })}
-                </div>
-              </div>
+              {(() => {
+                const split = sponsors.length > 5
+                const rows = split
+                  ? [
+                      { items: sponsors.slice(0, Math.ceil(sponsors.length / 2)), reverse: false },
+                      { items: sponsors.slice(Math.ceil(sponsors.length / 2)), reverse: true },
+                    ]
+                  : [{ items: sponsors, reverse: false }]
+
+                return rows.map(({ items, reverse }, rowIndex) => (
+                  <div key={rowIndex} className={`relative left-1/2 flex w-screen -translate-x-1/2 overflow-hidden border-y border-border/50 py-7 select-none ${rowIndex !== 0 ? "border-t-0" : ""}`}>
+                    <div className={`${reverse ? "animate-marquee-reverse" : "animate-marquee"} items-center`}>
+                      {[...items, ...items].map((sponsor, idx) => {
+                        const content = sponsor.logo_url ? (
+                          <img
+                            src={sponsor.logo_url}
+                            alt={sponsor.nama}
+                            className="h-10 w-auto object-contain opacity-60 transition-opacity duration-300 hover:opacity-100 active:opacity-100 lg:h-14"
+                          />
+                        ) : (
+                          <span className="text-sm font-bold tracking-tight text-foreground/60 transition-colors duration-300 hover:text-foreground active:text-foreground">{sponsor.nama}</span>
+                        )
+
+                        return (
+                          <Popover key={`${sponsor.id}-${rowIndex}-${idx}`}>
+                            <PopoverTrigger asChild>
+                              <button type="button" className="flex shrink-0 items-center justify-center px-8 lg:px-14">
+                                {content}
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-72 rounded-2xl p-4" sideOffset={10}>
+                              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{sponsor.nama}</p>
+                              <div className="mt-4 grid gap-2">
+                                {sponsor.lokasi_url && (
+                                  <a
+                                    href={sponsor.lokasi_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                                  >
+                                    <MapPin className="size-4" />
+                                    Buka lokasi
+                                  </a>
+                                )}
+                                {sponsor.sosmed_url && (
+                                  <a
+                                    href={sponsor.sosmed_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-sm font-bold text-background transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                                  >
+                                    <ExternalLink className="size-4" />
+                                    Buka sosmed
+                                  </a>
+                                )}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))
+              })()}
             </section>
           </FadeIn>
         )}
