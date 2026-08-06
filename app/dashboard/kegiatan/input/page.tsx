@@ -185,7 +185,7 @@ export default function InputKegiatan() {
           </Card>
 
           {editId ? (
-            <SponsorManager kegiatanId={Number(editId)} />
+            <SponsorManager year={Number(year)} kategoriId={Number(kategoriId)} />
           ) : (
             <Card className="border-border/50 shadow-sm bg-muted/10">
               <CardContent className="p-6 text-center text-muted-foreground text-sm">

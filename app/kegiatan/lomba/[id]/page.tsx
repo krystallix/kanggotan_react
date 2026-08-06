@@ -1,12 +1,14 @@
 import Layout from "@/components/layout/home-layout"
-import { getPertandinganByLombaId, getSponsorsByKegiatanId } from "@/lib/supabase/queries-server"
+import { getKategoriAll, getPertandinganByLombaId, getSponsorsByYearKategori } from "@/lib/supabase/queries-server"
+import { kategoriYearSegment } from "@/lib/slug"
 import { createClient } from "@/lib/supabase/server"
-import { CalendarDays, Clock, ExternalLink, Info, MapPin, Users } from "lucide-react"
+import { CalendarDays, Clock, Info, Users } from "lucide-react"
 import { notFound } from "next/navigation"
 import { MatchTabs } from "./match-panel"
 import { ShareButton } from "./share-button"
 import { FadeIn, StaggerChildren, StaggerItem } from "@/components/motion"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import Link from "next/link"
 
 const formatDate = (date: string | null) => {
   if (!date) return "TBA"
@@ -36,16 +38,19 @@ export default async function LombaDetailPage({ params }: PageProps) {
   const { data: lomba } = await supabase
     .schema("db_kanggotan2")
     .from("lomba")
-    .select("*, kegiatan(title, year)")
+    .select("*, kegiatan(title, year, kategori_id)")
     .eq("id", lombaId)
     .single()
 
   if (!lomba) notFound()
 
-  const [pertandingan, sponsors] = await Promise.all([
-    getPertandinganByLombaId(lombaId),
-    getSponsorsByKegiatanId(lomba.kegiatan_id)
+  const [pertandingan, sponsors, kategoriList] = await Promise.all([
+    lomba.has_pertandingan ? getPertandinganByLombaId(lombaId) : Promise.resolve([]),
+    getSponsorsByYearKategori(lomba.kegiatan.year, lomba.kegiatan.kategori_id),
+    getKategoriAll()
   ])
+  const sponsorKategori = kategoriList.find((k) => k.id === lomba.kegiatan.kategori_id)
+  const sponsorSegment = sponsorKategori ? kategoriYearSegment(sponsorKategori.name, lomba.kegiatan.year) : null
   const upcomingMatches = pertandingan.filter((p) => p.status !== "selesai").slice(0, 4)
   const recentMatches = pertandingan.filter((p) => p.status === "selesai").slice(-4).reverse()
   const teams = Array.from(new Set(pertandingan.flatMap((p) => [p.tim_a, p.tim_b])))
@@ -199,12 +204,15 @@ export default async function LombaDetailPage({ params }: PageProps) {
               )}
             </div>
           </div>
-          <div className="no-share-capture">
-            <ShareButton title={lomba.nama} standings={standings} matches={pertandingan} sponsors={sponsors} />
-          </div>
+          {lomba.has_pertandingan && (
+            <div className="no-share-capture">
+              <ShareButton title={lomba.nama} standings={standings} matches={pertandingan} sponsors={sponsors} />
+            </div>
+          )}
         </FadeIn>
 
-        <section className="grid gap-6 lg:grid-cols-[3fr_2fr] px-0 sm:px-0">
+        {lomba.has_pertandingan && (
+          <section className="grid gap-6 lg:grid-cols-[3fr_2fr] px-0 sm:px-0">
           <FadeIn delay={0.1}>
             <div className="rounded-none sm:rounded-2xl border-y sm:border border-border bg-card overflow-hidden">
               <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
@@ -366,6 +374,7 @@ export default async function LombaDetailPage({ params }: PageProps) {
             </StaggerItem>
           </StaggerChildren>
         </section>
+        )}
 
         {sponsors.length > 0 && (
           <FadeIn delay={0.2}>
@@ -398,41 +407,18 @@ export default async function LombaDetailPage({ params }: PageProps) {
                           <span className="text-sm font-bold tracking-tight text-foreground/60 transition-colors duration-300 hover:text-foreground active:text-foreground">{sponsor.nama}</span>
                         )
 
-                        return (
-                          <Popover key={`${sponsor.id}-${rowIndex}-${idx}`}>
-                            <PopoverTrigger asChild>
-                              <button type="button" className="flex shrink-0 items-center justify-center px-8 lg:px-14">
-                                {content}
-                              </button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-72 rounded-2xl p-4" sideOffset={10}>
-                              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{sponsor.nama}</p>
-                              <div className="mt-4 grid gap-2">
-                                {sponsor.lokasi_url && (
-                                  <a
-                                    href={sponsor.lokasi_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-                                  >
-                                    <MapPin className="size-4" />
-                                    Buka lokasi
-                                  </a>
-                                )}
-                                {sponsor.sosmed_url && (
-                                  <a
-                                    href={sponsor.sosmed_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-sm font-bold text-background transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-                                  >
-                                    <ExternalLink className="size-4" />
-                                    Buka sosmed
-                                  </a>
-                                )}
-                              </div>
-                            </PopoverContent>
-                          </Popover>
+                        return sponsorSegment ? (
+                          <Link
+                            key={`${sponsor.id}-${rowIndex}-${idx}`}
+                            href={`/sponsor/${sponsorSegment}/${sponsor.id}`}
+                            className="flex shrink-0 items-center justify-center px-8 lg:px-14"
+                          >
+                            {content}
+                          </Link>
+                        ) : (
+                          <div key={`${sponsor.id}-${rowIndex}-${idx}`} className="flex shrink-0 items-center justify-center px-8 lg:px-14">
+                            {content}
+                          </div>
                         )
                       })}
                     </div>
