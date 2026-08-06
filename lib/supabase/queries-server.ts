@@ -1,6 +1,6 @@
 // lib/supabase/queries-server.ts
 import { createClient } from '@/lib/supabase/server'
-import type { KegiatanKategori, Kegiatan, KegiatanWithKategori, Lomba, Pertandingan, Sponsor } from '@/types/kegiatan'
+import type { KegiatanKategori, KegiatanWithKategori, Lomba, Pertandingan, Sponsor } from '@/types/kegiatan'
 export type SenderWithArwahs = {
   id: number
   sender: string
@@ -270,13 +270,14 @@ export async function getAllPertandinganPaginated(
   return { data: data || [], total: count || 0 }
 }
 
-export async function getSponsorsByKegiatanId(kegiatanId: number): Promise<Sponsor[]> {
+export async function getSponsorsByYearKategori(year: number, kategoriId: number): Promise<Sponsor[]> {
   const supabase = await createClient()
   const { data, error } = await supabase
     .schema('db_kanggotan2')
     .from('sponsor')
     .select('*')
-    .eq('kegiatan_id', kegiatanId)
+    .eq('year', year)
+    .eq('kategori_id', kategoriId)
     .order('id', { ascending: true })
 
   if (error) {
@@ -284,5 +285,21 @@ export async function getSponsorsByKegiatanId(kegiatanId: number): Promise<Spons
     return []
   }
   return data || []
+}
+
+export async function getSponsorById(id: number): Promise<Sponsor | null> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .schema('db_kanggotan2')
+    .from('sponsor')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle()
+
+  if (error) {
+    console.error('Error fetching sponsor by id:', error)
+    return null
+  }
+  return data
 }
 

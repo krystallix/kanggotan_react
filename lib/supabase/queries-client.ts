@@ -562,13 +562,14 @@ export async function getArwahsCount(year: number) {
 
 // ── SPONSOR CRUD ──
 
-export async function getSponsorsByKegiatanIdClient(kegiatanId: number): Promise<Sponsor[]> {
+export async function getSponsorsByYearKategoriClient(year: number, kategoriId: number): Promise<Sponsor[]> {
   const supabase = createClient()
   const { data, error } = await supabase
     .schema('db_kanggotan2')
     .from('sponsor')
     .select('*')
-    .eq('kegiatan_id', kegiatanId)
+    .eq('year', year)
+    .eq('kategori_id', kategoriId)
     .order('id', { ascending: true })
 
   if (error) {
@@ -584,11 +585,13 @@ export async function insertSponsor(data: SponsorFormValues) {
     .schema('db_kanggotan2')
     .from('sponsor')
     .insert({
-      kegiatan_id: data.kegiatan_id,
+      year: data.year,
+      kategori_id: data.kategori_id,
       nama: data.nama,
       logo_url: data.logo_url || null,
-      lokasi_url: data.lokasi_url || null,
-      sosmed_url: data.sosmed_url || null,
+      phone: data.phone || null,
+      links: data.links || [],
+      photos: data.photos || [],
       deskripsi: data.deskripsi || null,
     })
   if (error) { console.error('Error insert sponsor:', error); throw error }
@@ -603,8 +606,9 @@ export async function updateSponsor(id: number, data: Partial<SponsorFormValues>
     .update({
       nama: data.nama,
       logo_url: data.logo_url,
-      lokasi_url: data.lokasi_url,
-      sosmed_url: data.sosmed_url,
+      phone: data.phone,
+      links: data.links,
+      photos: data.photos,
       deskripsi: data.deskripsi,
     })
     .eq('id', id)
@@ -612,18 +616,31 @@ export async function updateSponsor(id: number, data: Partial<SponsorFormValues>
   return { success: true }
 }
 
-export async function deleteSponsor(id: number) {
+export async function deleteSponsor(sponsor: Sponsor) {
   const supabase = createClient()
+  await deleteSponsorStorageFiles([sponsor.logo_url, ...sponsor.photos])
   const { error } = await supabase
     .schema('db_kanggotan2')
     .from('sponsor')
     .delete()
-    .eq('id', id)
+    .eq('id', sponsor.id)
   if (error) { console.error('Error delete sponsor:', error); throw error }
   return { success: true }
 }
 
-export async function uploadSponsorLogo(file: File) {
+export async function deleteSponsorStorageFiles(urls: (string | null)[]) {
+  const supabase = createClient()
+  const names = urls
+    .filter((url): url is string => !!url)
+    .map((url) => url.split("/object/public/sponsors/")[1]?.split("/")[0])
+    .filter((name): name is string => !!name)
+
+  if (names.length === 0) return
+  const { error } = await supabase.storage.from("sponsors").remove(names)
+  if (error) console.error('Error deleting sponsor files:', error)
+}
+
+export async function uploadSponsorFile(file: File) {
   const supabase = createClient()
   const fileExt = file.name.split('.').pop()
   const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`

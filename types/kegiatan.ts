@@ -115,23 +115,37 @@ export const pertandinganFormSchema = z.object({
 
 export type PertandinganFormValues = z.infer<typeof pertandinganFormSchema>;
 
+export type SponsorLink = {
+  title: string;
+  url: string;
+};
+
 export type Sponsor = {
   id: number;
-  kegiatan_id: number;
+  year: number;
+  kategori_id: number;
   nama: string;
   logo_url: string | null;
-  lokasi_url: string | null;
-  sosmed_url: string | null;
+  phone: string | null;
+  links: SponsorLink[];
+  photos: string[];
   deskripsi: string | null;
   created_at: string;
 };
 
 export const sponsorFormSchema = z.object({
-  kegiatan_id: z.coerce.number().int().min(1, "Kegiatan wajib dipilih"),
+  year: z.coerce.number().int().min(2020),
+  kategori_id: z.coerce.number().int().min(1, "Kategori wajib dipilih"),
   nama: z.string().min(1, "Nama sponsor wajib diisi"),
   logo_url: z.string().optional().nullable(),
-  lokasi_url: z.string().optional().nullable(),
-  sosmed_url: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  links: z.array(
+    z.object({
+      title: z.string().min(1, "Judul link wajib diisi"),
+      url: z.string().min(1, "URL wajib diisi"),
+    })
+  ).default([]),
+  photos: z.array(z.string()).default([]),
   deskripsi: z.string().optional().nullable(),
 });
 
