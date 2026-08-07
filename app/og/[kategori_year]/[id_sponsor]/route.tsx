@@ -27,16 +27,6 @@ export async function GET(
   const kategoriList = await getKategoriAll()
   const kategori = slugPart ? kategoriList.find((k) => slugify(k.name) === slugPart) : undefined
 
-  const linksCount = sponsor.links?.length ?? 0
-  const photosCount = sponsor.photos?.length ?? 0
-  const metas = [
-    `${kategori?.name ?? "Sponsor"}`,
-    String(year),
-    sponsor.phone ? `Telp ${sponsor.phone}` : null,
-    linksCount > 0 ? `${linksCount} link` : null,
-    photosCount > 0 ? `${photosCount} foto` : null,
-  ].filter(Boolean)
-
   return new ImageResponse(<OgShell />, ogOptions)
 
   function OgShell() {
@@ -128,44 +118,24 @@ export async function GET(
             {sp.nama}
           </h1>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 28 }}>
-            {metas.map((m) => (
-              <span
-                key={m}
-                style={{
-                  fontSize: 22,
-                  fontWeight: 800,
-                  color: "rgba(255,255,255,0.92)",
-                  background: "rgba(255,255,255,0.14)",
-                  borderRadius: 999,
-                  padding: "10px 22px",
-                }}
-              >
-                {m}
-              </span>
-            ))}
-          </div>
+          <p style={{ fontSize: 26, fontWeight: 800, color: "rgba(255,255,255,0.85)", margin: "20px 0 0" }}>
+            {kategori?.name ?? "Sponsor"} · {year}
+          </p>
 
           {sp.deskripsi && (
             <p
               style={{
                 fontSize: 24,
                 color: MUTED,
-                margin: "28px 0 0",
+                margin: "24px 0 0",
                 textAlign: "center",
-                maxWidth: 760,
+                maxWidth: 820,
                 lineHeight: 1.4,
               }}
             >
-              {sp.deskripsi.length > 160 ? `${sp.deskripsi.slice(0, 160)}…` : sp.deskripsi}
+              {sp.deskripsi.length > 180 ? `${sp.deskripsi.slice(0, 180)}…` : sp.deskripsi}
             </p>
           )}
-
-          <div style={{ position: "absolute", bottom: 44, left: 0, right: 0, display: "flex", justifyContent: "center" }}>
-            <span style={{ fontSize: 18, fontWeight: 700, color: MUTED, letterSpacing: 1 }}>
-              TERIMA KASIH SUDAH MENDUKUNG KAMI
-            </span>
-          </div>
         </div>
       </div>
     )
