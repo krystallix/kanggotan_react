@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthProvider";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
+import { SITE_NAME, SITE_DESCRIPTION, SITE_URL_FALLBACK } from "@/lib/site";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -18,8 +19,38 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Kanggotan",
-  description: "RISMA Kanggotan Lor - Building Stronger Communities Through Islamic Values",
+  metadataBase: new URL(SITE_URL_FALLBACK),
+  title: {
+    default: `${SITE_NAME} | Remaja Masjid At-Ta'awun Kanggotan Lor`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  keywords: [
+    "RISMA Kanggotan",
+    "Remaja Masjid At-Ta'awun",
+    "Kanggotan",
+    "Kanggotan Lor",
+    "Masjid At-Ta'awun",
+    "Yogyakarta",
+    "kegiatan remaja masjid",
+    "haul massal",
+    "sponsor RISMA",
+  ],
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} | Remaja Masjid At-Ta'awun Kanggotan Lor`,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL_FALLBACK,
+    locale: "id_ID",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default async function RootLayout({

@@ -5,6 +5,7 @@ import { Plus, Trash2, Loader2, Link2, Phone, X, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { getSponsorsByYearKategoriClient, insertSponsor, updateSponsor, deleteSponsor, deleteSponsorStorageFiles, uploadSponsorFile } from "@/lib/supabase/queries-client"
 import { sponsorLinkIcon } from "@/lib/sponsor-link-icon"
@@ -224,7 +225,7 @@ function SponsorForm({
 
           <Field>
             <FieldLabel className="text-xs">Deskripsi</FieldLabel>
-            <Input value={deskripsi} onChange={(e) => setDeskripsi(e.target.value)} placeholder="Deskripsi singkat sponsor (opsional)" />
+            <Textarea value={deskripsi} onChange={(e) => setDeskripsi(e.target.value)} placeholder="Deskripsi singkat sponsor (opsional)" rows={3} />
           </Field>
 
           <div className="flex justify-end gap-2 pt-2">

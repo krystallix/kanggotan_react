@@ -4,12 +4,47 @@ import { slugify, kategoriYearSegment } from "@/lib/slug"
 import { notFound } from "next/navigation"
 import { Phone, ChevronLeft } from "lucide-react"
 import Link from "next/link"
+import type { Metadata } from "next"
 import { FadeIn } from "@/components/motion"
 import { PhotoCarousel } from "./photo-carousel"
 import { sponsorLinkIcon } from "@/lib/sponsor-link-icon"
+import { getSiteUrl } from "@/lib/site"
 
 type PageProps = {
   params: Promise<{ kategori_year: string; id_sponsor: string }>
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { kategori_year, id_sponsor } = await params
+  const url = await getSiteUrl()
+  const sponsor = await getSponsorById(Number(id_sponsor))
+  if (!sponsor) return { title: "Sponsor", robots: { index: false } }
+  const lastDash = kategori_year.lastIndexOf("-")
+  const year = Number(kategori_year.slice(lastDash + 1))
+  const slugPart = lastDash > 0 ? kategori_year.slice(0, lastDash) : ""
+  const kategoriList = await getKategoriAll()
+  const kategori = slugPart ? kategoriList.find((k) => slugify(k.name) === slugPart) : undefined
+  return {
+    title: sponsor.nama,
+    description: sponsor.deskripsi
+      ? `${sponsor.nama} — sponsor kegiatan ${kategori?.name ?? ""} ${year}. ${sponsor.deskripsi}`
+      : `Sponsor ${kategori?.name ?? ""} ${year} yang mendukung kegiatan RISMA Kanggotan Lor — ${sponsor.nama}.`,
+    alternates: { canonical: `${url}/sponsor/${kategori_year}/${id_sponsor}` },
+    openGraph: {
+      title: `${sponsor.nama} — Sponsor RISMA Kanggotan`,
+      description: sponsor.deskripsi ?? `Sponsor kegiatan ${kategori?.name ?? ""} ${year} RISMA Kanggotan Lor.`,
+      url: `${url}/sponsor/${kategori_year}/${id_sponsor}`,
+      type: "website",
+      images: [
+        {
+          url: `${url}/og/${kategori_year}/${id_sponsor}`,
+          width: 1200,
+          height: 630,
+          alt: sponsor.nama,
+        },
+      ],
+    },
+  }
 }
 
 export default async function SponsorDetailPage({ params }: PageProps) {
