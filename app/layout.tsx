@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthProvider";
 import { createClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -26,8 +27,15 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const cookieStore = await cookies()
+  const hasSessionCookie = cookieStore.getAll().some((c) => c.name.includes("auth-token"))
+
+  let user = null
+  if (hasSessionCookie) {
+    const supabase = await createClient()
+    const { data: { user: authUser } } = await supabase.auth.getUser()
+    user = authUser
+  }
 
 
   return (

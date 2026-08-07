@@ -1,6 +1,6 @@
 // lib/supabase/queries-server.ts
 import { createClient } from '@/lib/supabase/server'
-import type { KegiatanKategori, KegiatanWithKategori, Lomba, Pertandingan, Sponsor } from '@/types/kegiatan'
+import type { Kegiatan, KegiatanKategori, KegiatanWithKategori, Lomba, Pertandingan, Sponsor } from '@/types/kegiatan'
 export type SenderWithArwahs = {
   id: number
   sender: string
@@ -164,22 +164,42 @@ export async function getPertandinganByLombaId(lombaId: number): Promise<Pertand
 }
 
 export async function getKegiatanWithLombaByYear(year: number) {
-  const kegiatanList = await getKegiatanByYear(year)
-  const kegiatanWithLomba = await Promise.all(
-    kegiatanList.map(async (kegiatan) => {
-      const lomba = await getLombaByKegiatanId(kegiatan.id)
-      const lombaWithPertandingan = await Promise.all(
-        lomba.map(async (l) => {
-          const pertandingan = l.has_pertandingan
-            ? await getPertandinganByLombaId(l.id)
-            : []
-          return { ...l, pertandingan }
-        })
-      )
-      return { ...kegiatan, lomba: lombaWithPertandingan }
-    })
-  )
-  return kegiatanWithLomba
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .schema('db_kanggotan2')
+    .from('kegiatan')
+    .select(`
+      *,
+      kegiatan_kategori!inner(name, icon),
+      lomba(*, pertandingan(*))
+    `)
+    .eq('year', year)
+    .eq('is_published', true)
+    .order('date', { ascending: true })
+    .order('sort_order', { ascending: true, referencedTable: 'lomba' })
+
+  if (error) {
+    console.error('Error fetching kegiatan with lomba:', error)
+    return []
+  }
+
+  return (data || []).map((raw) => {
+    const item = raw as unknown as Kegiatan & {
+      kegiatan_kategori: { name: string; icon: string }
+      lomba: Array<Lomba & { pertandingan: Pertandingan[] | null }>
+    }
+    const { kegiatan_kategori, lomba, ...kegiatan } = item
+    return {
+      ...kegiatan,
+      kategori_name: kegiatan_kategori.name,
+      kategori_icon: kegiatan_kategori.icon,
+      lomba: lomba.map((l) => ({
+        ...l,
+        pertandingan: (l.has_pertandingan ? (l.pertandingan || []) : [])
+          .sort((a, b) => a.sort_order - b.sort_order),
+      })),
+    }
+  })
 }
 
 // ── DASHBOARD QUERIES ──

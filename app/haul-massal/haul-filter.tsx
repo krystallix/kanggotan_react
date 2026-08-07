@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import YearSelect from "@/components/year-select";
 import { FileDown } from "lucide-react";
 import { useState } from "react";
-import * as XLSX from 'xlsx';
 import { toast } from "sonner";
 import { exportHaulData } from "@/lib/supabase/actions";
 
@@ -33,6 +32,7 @@ export default function HaulFilters({ years, selectedYear, totalResults, search 
                     }
 
                     // Buat worksheet dari data
+                    const XLSX = await import("xlsx");
                     const worksheet = XLSX.utils.json_to_sheet(data);
 
                     // Set column widths

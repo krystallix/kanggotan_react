@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { getSponsorsByYearKategoriClient, insertSponsor, updateSponsor, deleteSponsor, deleteSponsorStorageFiles, uploadSponsorFile } from "@/lib/supabase/queries-client"
+import { sponsorLinkIcon } from "@/lib/sponsor-link-icon"
 import type { Sponsor, SponsorLink } from "@/types/kegiatan"
 import { toast } from "sonner"
 
@@ -356,7 +357,7 @@ export function SponsorManager({ year, kategoriId }: { year: number; kategoriId:
                   )}
                   {s.links.map((link, index) => (
                     <a key={index} href={link.url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:underline flex items-center gap-1">
-                      <Link2 className="size-2.5 shrink-0" />
+                      {sponsorLinkIcon(link.title, link.url, "size-2.5 shrink-0")}
                       {link.title}
                     </a>
                   ))}
