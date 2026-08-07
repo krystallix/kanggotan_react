@@ -44,33 +44,31 @@ export default async function SponsorListPage({ params }: PageProps) {
             </p>
           </FadeIn>
         ) : (
-          <StaggerChildren stagger={0.05} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {sponsorList.map((sponsor) => (
+          <StaggerChildren stagger={0.05} className="flex flex-col">
+            {sponsorList.map((sponsor, i) => (
               <StaggerItem key={sponsor.id}>
                 <Link
                   href={`/sponsor/${segment}/${sponsor.id}`}
-                  className="group block h-full rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md hover:shadow-primary/[0.05]"
+                  className={`group flex items-center gap-4 py-6 ${i !== 0 ? "border-t border-border" : ""}`}
                 >
-                  <div className="flex items-center gap-4">
-                    {sponsor.logo_url ? (
-                      <div className="size-16 shrink-0 rounded-xl bg-muted p-1.5 border border-border/50 flex items-center justify-center overflow-hidden">
-                        <img src={sponsor.logo_url} alt={sponsor.nama} className="max-h-full max-w-full object-contain" />
-                      </div>
-                    ) : (
-                      <div className="size-16 shrink-0 rounded-xl bg-primary/10 text-primary font-black text-xl flex items-center justify-center">
-                        {sponsor.nama.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors duration-200 truncate">
-                        {sponsor.nama}
-                      </h3>
-                      {sponsor.deskripsi && (
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{sponsor.deskripsi}</p>
-                      )}
+                  {sponsor.logo_url ? (
+                    <div className="size-14 shrink-0 rounded-xl bg-muted p-1.5 border border-border/50 flex items-center justify-center overflow-hidden">
+                      <img src={sponsor.logo_url} alt={sponsor.nama} className="max-h-full max-w-full object-contain" />
                     </div>
-                    <ArrowRight className="size-4 shrink-0 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200" />
+                  ) : (
+                    <div className="size-14 shrink-0 rounded-xl bg-primary/10 text-primary font-black text-lg flex items-center justify-center">
+                      {sponsor.nama.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors duration-200 truncate">
+                      {sponsor.nama}
+                    </h3>
+                    {sponsor.deskripsi && (
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{sponsor.deskripsi}</p>
+                    )}
                   </div>
+                  <ArrowRight className="size-4 shrink-0 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200" />
                 </Link>
               </StaggerItem>
             ))}
