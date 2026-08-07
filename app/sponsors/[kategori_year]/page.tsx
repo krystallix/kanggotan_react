@@ -4,10 +4,38 @@ import { slugify, kategoriYearSegment } from "@/lib/slug"
 import { notFound } from "next/navigation"
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
+import type { Metadata } from "next"
 import { FadeIn, StaggerChildren, StaggerItem } from "@/components/motion"
+import { getSiteUrl } from "@/lib/site"
 
 type PageProps = {
   params: Promise<{ kategori_year: string }>
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { kategori_year } = await params
+  const url = await getSiteUrl()
+  const lastDash = kategori_year.lastIndexOf("-")
+  const year = Number(kategori_year.slice(lastDash + 1))
+  const slugPart = lastDash > 0 ? kategori_year.slice(0, lastDash) : ""
+  const kategoriList = await getKategoriAll()
+  const kategori = slugPart ? kategoriList.find((k) => slugify(k.name) === slugPart) : undefined
+  return {
+    title: kategori ? `Sponsor ${kategori.name} ${year}` : "Sponsor Kegiatan",
+    description: kategori
+      ? `Daftar sponsor ${kategori.name} ${year} yang mendukung kegiatan RISMA Kanggotan Lor.`
+      : "Sponsor yang mendukung kegiatan RISMA Kanggotan Lor.",
+    alternates: { canonical: `${url}/sponsors/${kategori_year}` },
+    openGraph: {
+      title: kategori ? `Sponsor ${kategori.name} ${year} — RISMA Kanggotan` : "Sponsor Kegiatan — RISMA Kanggotan",
+      description: kategori
+        ? `Daftar sponsor ${kategori.name} ${year} yang mendukung kegiatan RISMA Kanggotan Lor.`
+        : "Sponsor yang mendukung kegiatan RISMA Kanggotan Lor.",
+      url: `${url}/sponsors/${kategori_year}`,
+      type: "website",
+      images: [{ url: `${url}/og`, width: 1200, height: 630 }],
+    },
+  }
 }
 
 export default async function SponsorListPage({ params }: PageProps) {

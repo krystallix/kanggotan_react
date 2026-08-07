@@ -1,9 +1,11 @@
 import Layout from "@/components/layout/home-layout";
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowRight, CalendarDays, MoveRight, Activity, BookOpen, HeartHandshake, Home, Landmark, Music, Sparkles, Star, Trophy, Users, Utensils, Zap, type LucideIcon } from "lucide-react";
 import { getKategoriAll } from "@/lib/supabase/queries-server";
 import { FadeIn, StaggerChildren, StaggerItem } from "@/components/motion";
+import { getSiteUrl, SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
 
 const KATEGORI_ICONS: Record<string, LucideIcon> = {
   Activity,
@@ -20,11 +22,43 @@ const KATEGORI_ICONS: Record<string, LucideIcon> = {
   Zap,
 };
 
+export async function generateMetadata(): Promise<Metadata> {
+  const url = await getSiteUrl()
+  return {
+    title: {
+      absolute: `${SITE_NAME} | Remaja Masjid At-Ta'awun Kanggotan Lor`,
+    },
+    description: SITE_DESCRIPTION,
+    alternates: { canonical: `${url}/` },
+    openGraph: {
+      title: `${SITE_NAME} | Remaja Masjid At-Ta'awun Kanggotan Lor`,
+      description: SITE_DESCRIPTION,
+      url: `${url}/`,
+      siteName: SITE_NAME,
+      locale: "id_ID",
+      type: "website",
+      images: [{ url: `${url}/og`, width: 1200, height: 630 }],
+    },
+  }
+}
+
 export default async function Page() {
   const kategoriList = await getKategoriAll()
+  const url = await getSiteUrl()
+
+  const orgJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: SITE_NAME,
+    alternateName: "Remaja Masjid At-Ta'awun Kanggotan Lor",
+    url: `${url}/`,
+    areaServed: "Kanggotan Lor, Yogyakarta, Indonesia",
+  }
 
   return (
-    <Layout>
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
+      <Layout>
       <section className="relative py-16 lg:py-20">
         <div className="absolute inset-x-[-24px] top-0 bottom-10 -z-10 bg-[#F3F3F3]" />
         <FadeIn y={24}>
@@ -217,6 +251,7 @@ export default async function Page() {
           </div>
         </FadeIn>
       </section>
-    </Layout>
+      </Layout>
+    </>
   );
 }

@@ -4,11 +4,32 @@ import { kategoriYearSegment } from "@/lib/slug"
 import { createClient } from "@/lib/supabase/server"
 import { CalendarDays, Clock, Info, Users } from "lucide-react"
 import { notFound } from "next/navigation"
+import type { Metadata } from "next"
 import { MatchTabs } from "./match-panel"
 import { ShareButton } from "./share-button"
 import { FadeIn, StaggerChildren, StaggerItem } from "@/components/motion"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import Link from "next/link"
+import { getSiteUrl } from "@/lib/site"
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const url = await getSiteUrl()
+  const supabase = await createClient()
+  const { data: lomba } = await supabase
+    .schema("db_kanggotan2")
+    .from("lomba")
+    .select("nama, kegiatan(title)")
+    .eq("id", Number(id))
+    .single()
+  return {
+    title: lomba?.nama ? `${lomba.nama} — ${lomba.kegiatan?.[0]?.title ?? "Kegiatan RISMA"}` : "Kegiatan & Klasemen",
+    description: lomba?.nama
+      ? `Klasemen dan jadwal pertandingan ${lomba.nama} — RISMA Kanggotan Lor.`
+      : "Klasemen dan jadwal pertandingan RISMA Kanggotan Lor.",
+    alternates: { canonical: `${url}/kegiatan/lomba/${id}` },
+  }
+}
 
 const formatDate = (date: string | null) => {
   if (!date) return "TBA"

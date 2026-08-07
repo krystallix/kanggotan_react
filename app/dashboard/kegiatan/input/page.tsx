@@ -6,6 +6,7 @@ import DashLayout from "@/components/layout/dash-layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Save, ArrowLeft, Loader2 } from "lucide-react"
 import { getKategoriAllClient, insertKegiatan, updateKegiatan } from "@/lib/supabase/queries-client"
 import type { KegiatanKategori } from "@/types/kegiatan"
@@ -137,7 +138,7 @@ export default function InputKegiatan() {
 
                   <Field>
                     <FieldLabel htmlFor="desc" className="text-sm">Deskripsi</FieldLabel>
-                    <Input id="desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Deskripsi kegiatan (opsional)" />
+                    <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Deskripsi kegiatan (opsional)" rows={4} />
                   </Field>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

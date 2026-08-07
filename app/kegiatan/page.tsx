@@ -2,7 +2,18 @@ import Layout from "@/components/layout/home-layout";
 import { getKategoriAll, getKegiatanWithLombaByYear } from "@/lib/supabase/queries-server";
 import { CalendarDays, Clock, User, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { FadeIn, StaggerChildren, StaggerItem } from "@/components/motion";
+import { getSiteUrl } from "@/lib/site";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const url = await getSiteUrl()
+  return {
+    title: "Kegiatan & Agenda",
+    description: "Jadwal dan dokumentasi kegiatan RISMA Kanggotan Lor — lomba, turnamen, dan agenda remaja masjid At-Ta'awun.",
+    alternates: { canonical: `${url}/kegiatan` },
+  }
+}
 
 type PageProps = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
