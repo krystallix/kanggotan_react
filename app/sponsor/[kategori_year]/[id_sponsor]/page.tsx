@@ -1,11 +1,12 @@
 import Layout from "@/components/layout/home-layout"
 import { getKategoriAll, getSponsorById } from "@/lib/supabase/queries-server"
-import { slugify } from "@/lib/slug"
+import { slugify, kategoriYearSegment } from "@/lib/slug"
 import { notFound } from "next/navigation"
-import { Phone, ExternalLink, ChevronLeft, MapPin } from "lucide-react"
+import { Phone, ChevronLeft } from "lucide-react"
 import Link from "next/link"
 import { FadeIn } from "@/components/motion"
 import { PhotoCarousel } from "./photo-carousel"
+import { sponsorLinkIcon } from "@/lib/sponsor-link-icon"
 
 type PageProps = {
   params: Promise<{ kategori_year: string; id_sponsor: string }>
@@ -36,13 +37,13 @@ export default async function SponsorDetailPage({ params }: PageProps) {
   return (
     <Layout>
       <div className="py-6 sm:py-10">
-        <FadeIn className="-mx-3 sm:mx-0 mb-5 px-2 sm:px-0">
+        <FadeIn className="-mx-3 sm:mx-0 mb-5 px-2 sm:px-0 flex flex-wrap items-center gap-2">
           <Link
-            href={`/kegiatan?year=${year}&kategori=${kategori.id}`}
+            href={`/sponsors/${kategoriYearSegment(kategori.name, year)}`}
             className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-4 py-2 text-xs font-bold text-foreground shadow-sm transition-all duration-200 hover:border-primary/40 hover:text-primary"
           >
             <ChevronLeft className="size-4" />
-            Kembali ke kegiatan
+            Semua Sponsor
           </Link>
         </FadeIn>
 
@@ -53,7 +54,7 @@ export default async function SponsorDetailPage({ params }: PageProps) {
             )}
 
 
-            <div className="px-6 py-6 flex flex-col items-center text-center">
+            <div className="px-5 py-4 sm:px-6 sm:py-5 flex flex-col items-center text-center">
               {sponsor.logo_url ? (
                 <div className="size-20 rounded-2xl bg-muted p-2 border border-border/50 flex items-center justify-center overflow-hidden">
                   <img src={sponsor.logo_url} alt={sponsor.nama} className="max-h-full max-w-full object-contain" />
@@ -64,7 +65,7 @@ export default async function SponsorDetailPage({ params }: PageProps) {
                 </div>
               )}
 
-              <h1 className="mt-4 text-2xl font-bold tracking-tight">{sponsor.nama}</h1>
+              <h1 className="mt-3 text-2xl font-bold tracking-tight">{sponsor.nama}</h1>
 
               {/* <div className="mt-2 flex items-center gap-2 flex-wrap justify-center">
                 <span className="text-[10px] font-bold uppercase tracking-widest bg-primary/10 text-primary px-2.5 py-1 rounded-md">
@@ -76,7 +77,7 @@ export default async function SponsorDetailPage({ params }: PageProps) {
               </div> */}
 
               {sponsor.deskripsi && (
-                <p className="mt-4 text-sm text-muted-foreground leading-relaxed max-w-xs">{sponsor.deskripsi}</p>
+                <p className="mt-2.5 text-sm text-muted-foreground leading-relaxed max-w-sm">{sponsor.deskripsi}</p>
               )}
             </div>
 
@@ -102,12 +103,9 @@ export default async function SponsorDetailPage({ params }: PageProps) {
                       className="flex w-full items-center justify-between gap-3 rounded-2xl border border-border bg-muted/30 px-5 py-3.5 text-sm font-semibold text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
                     >
                       <span className="flex items-center gap-2 min-w-0">
-                        {/lokasi|maps|alamat/i.test(link.title + " " + link.url) && (
-                          <MapPin className="size-4 shrink-0 text-primary" />
-                        )}
+                        {sponsorLinkIcon(link.title, link.url, "size-4 shrink-0 text-muted-foreground")}
                         <span className="truncate">{link.title}</span>
                       </span>
-                      <ExternalLink className="size-4 shrink-0 text-muted-foreground" />
                     </a>
                   ))}
                 </div>

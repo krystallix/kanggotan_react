@@ -1,10 +1,24 @@
 import Layout from "@/components/layout/home-layout";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, MoveRight } from "lucide-react";
+import { ArrowRight, CalendarDays, MoveRight, Activity, BookOpen, HeartHandshake, Home, Landmark, Music, Sparkles, Star, Trophy, Users, Utensils, Zap, type LucideIcon } from "lucide-react";
 import { getKategoriAll } from "@/lib/supabase/queries-server";
-import { icons as lucideIcons } from "lucide-react";
 import { FadeIn, StaggerChildren, StaggerItem } from "@/components/motion";
+
+const KATEGORI_ICONS: Record<string, LucideIcon> = {
+  Activity,
+  BookOpen,
+  HeartHandshake,
+  Home,
+  Landmark,
+  Music,
+  Sparkles,
+  Star,
+  Trophy,
+  Users,
+  Utensils,
+  Zap,
+};
 
 export default async function Page() {
   const kategoriList = await getKategoriAll()
@@ -61,7 +75,7 @@ export default async function Page() {
 
         <StaggerChildren stagger={0.08} className="grid md:grid-cols-3 gap-5">
           {kategoriList.map((kat) => {
-            const IconComponent = lucideIcons[kat.icon as keyof typeof lucideIcons]
+            const IconComponent = KATEGORI_ICONS[kat.icon] ?? CalendarDays
             return (
               <StaggerItem key={kat.id}>
                 <Link
