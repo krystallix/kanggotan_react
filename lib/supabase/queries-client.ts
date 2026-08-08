@@ -427,7 +427,7 @@ export async function insertPertandingan(data: PertandinganFormValues) {
 
 export async function updatePertandingan(id: number, data: PertandinganFormValues) {
   const supabase = createClient()
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .schema('db_kanggotan2')
     .from('pertandingan')
     .update({
@@ -444,7 +444,11 @@ export async function updatePertandingan(id: number, data: PertandinganFormValue
       sort_order: data.sort_order,
     })
     .eq('id', id)
+    .select()
   if (error) { console.error('Error update pertandingan:', error); throw error }
+  if (!updated || updated.length === 0) {
+    throw new Error('Tidak ada pertandingan yang berubah. Cek izin database (RLS) atau ID salah.')
+  }
   return { success: true }
 }
 
