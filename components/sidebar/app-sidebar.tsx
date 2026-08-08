@@ -7,6 +7,7 @@ import {
     DatabaseZap,
     Ghost,
     Activity,
+    QrCode,
 } from "lucide-react"
 
 import { NavMain } from "@/components/sidebar/nav-main"
@@ -95,6 +96,17 @@ const data = {
                 {
                     title: "Pertandingan",
                     url: "/dashboard/kegiatan/pertandingan",
+                },
+            ],
+        },
+        {
+            title: "Tools",
+            url: "/dashboard/tools/qrcode",
+            icon: QrCode,
+            items: [
+                {
+                    title: "QR Generator",
+                    url: "/dashboard/tools/qrcode",
                 },
             ],
         },
