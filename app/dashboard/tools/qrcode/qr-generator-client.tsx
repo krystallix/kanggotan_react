@@ -1,175 +1,121 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Download, Upload, Sparkles, Image as ImageIcon, X } from "lucide-react"
+import { Download, Upload, RefreshCw, Sparkles, Image as ImageIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
-import QRCode from "qrcode"
 
-type CustomDotType = "extra-rounded" | "rounded" | "dots" | "square" | "love" | "diamond"
+// Type definitions untuk qr-code-styling
+type DotType = "rounded" | "dots" | "classy" | "classy-rounded" | "square" | "extra-rounded"
+type CornerDotType = "dot" | "square" | "rounded"
+type CornerSquareType = "dot" | "square" | "extra-rounded" | "out-rounded"
+
+interface QRCodeInstance {
+  append: (container?: HTMLElement) => void
+  update: (options: Record<string, unknown>) => void
+  download: (options: { name: string; extension: "png" | "svg" }) => Promise<void>
+}
 
 export default function QrGeneratorClient() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [qrCode, setQrCode] = useState<QRCodeInstance | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   // Options states
   const [data, setData] = useState("https://kanggotan.site")
-  const [dotType, setDotType] = useState<CustomDotType>("love")
+  const [dotType, setDotType] = useState<DotType>("extra-rounded")
+  const [cornerSquareType, setCornerSquareType] = useState<CornerSquareType>("extra-rounded")
+  const [cornerDotType, setCornerDotType] = useState<CornerDotType>("dot")
   const [color, setColor] = useState("#4538c8") // Risma Indigo
   const [bgColor, setBgColor] = useState("#ffffff")
   
   // Logo states
   const [logoOption, setLogoOption] = useState<"risma" | "custom" | "none">("risma")
   const [customLogoUrl, setCustomLogoUrl] = useState<string | null>(null)
-  const [logoSize, setLogoSize] = useState(0.25) // Scale multiplier (smaller for safety)
+  const [logoSize, setLogoSize] = useState(0.4) // Scale multiplier
 
-  // Render QR Code on Canvas manually
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Initialize qr-code-styling
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const ctx = canvas.getContext("2d")
-    if (!ctx) return
-
-    const size = 320
-    canvas.width = size
-    canvas.height = size
-
-    // Clear background
-    ctx.fillStyle = bgColor
-    ctx.fillRect(0, 0, size, size)
-
-    // Generate QR matrix
-    const qrData = QRCode.create(data || " ", { errorCorrectionLevel: "H" })
-    const modules = qrData.modules
-    const count = modules.size
-    const cellSize = (size - 24) / count // margin 12px each side
-    const margin = 12
-
-    // Load logo image if needed
-    let logoImg: HTMLImageElement | null = null
-    const drawAll = () => {
-      ctx.fillStyle = bgColor
-      ctx.fillRect(0, 0, size, size)
-
-      const logoSizePixels = size * logoSize
-      const logoX = (size - logoSizePixels) / 2
-      const logoY = (size - logoSizePixels) / 2
-
-      // Draw modules
-      for (let r = 0; r < count; r++) {
-        for (let c = 0; c < count; c++) {
-          if (!modules.get(c, r)) continue
-
-          const x = c * cellSize + margin
-          const y = r * cellSize + margin
-
-          // Check if coordinate overlaps with logo area (keep middle clean)
-          if (logoOption !== "none") {
-            const buffer = cellSize * 0.8
-            if (
-              x + cellSize > logoX - buffer &&
-              x < logoX + logoSizePixels + buffer &&
-              y + cellSize > logoY - buffer &&
-              y < logoY + logoSizePixels + buffer
-            ) {
-              continue
-            }
-          }
-
-          // Check if it's one of the three finder patterns (corners)
-          const isFinder =
-            (r < 7 && c < 7) || // Top-left
-            (r < 7 && c >= count - 7) || // Top-right
-            (r >= count - 7 && c < 7) // Bottom-left
-
-          ctx.fillStyle = color
-
-          if (isFinder) {
-            // Render finder pattern cleanly as rounded rectangle
-            ctx.beginPath()
-            ctx.roundRect(x, y, cellSize, cellSize, cellSize * 0.25)
-            ctx.fill()
-            continue
-          }
-
-          // Custom dot pattern drawing
-          if (dotType === "love") {
-            ctx.save()
-            ctx.translate(x + cellSize / 2, y + cellSize / 2)
-            ctx.beginPath()
-            // Simple SVG Love Path scaled to cell size
-            const s = cellSize / 16
-            ctx.scale(s, s)
-            ctx.moveTo(0, -3)
-            ctx.bezierCurveTo(-2, -6, -7, -6, -7, -1)
-            ctx.bezierCurveTo(-7, 3, -1, 6, 0, 8)
-            ctx.bezierCurveTo(1, 6, 7, 3, 7, -1)
-            ctx.bezierCurveTo(7, -6, 2, -6, 0, -3)
-            ctx.closePath()
-            ctx.fill()
-            ctx.restore()
-          } else if (dotType === "diamond") {
-            ctx.beginPath()
-            ctx.moveTo(x + cellSize / 2, y)
-            ctx.lineTo(x + cellSize, y + cellSize / 2)
-            ctx.lineTo(x + cellSize / 2, y + cellSize)
-            ctx.lineTo(x, y + cellSize / 2)
-            ctx.closePath()
-            ctx.fill()
-          } else if (dotType === "dots") {
-            ctx.beginPath()
-            ctx.arc(x + cellSize / 2, y + cellSize / 2, cellSize * 0.4, 0, Math.PI * 2)
-            ctx.fill()
-          } else if (dotType === "rounded") {
-            ctx.beginPath()
-            ctx.roundRect(x + cellSize * 0.05, y + cellSize * 0.05, cellSize * 0.9, cellSize * 0.9, cellSize * 0.25)
-            ctx.fill()
-          } else if (dotType === "extra-rounded") {
-            ctx.beginPath()
-            ctx.roundRect(x + cellSize * 0.05, y + cellSize * 0.05, cellSize * 0.9, cellSize * 0.9, cellSize * 0.45)
-            ctx.fill()
-          } else {
-            // Square (standard)
-            ctx.fillRect(x, y, cellSize, cellSize)
-          }
-        }
+    import("qr-code-styling").then(({ default: QRCodeStyling }) => {
+      const qr = new QRCodeStyling({
+        width: 320,
+        height: 320,
+        margin: 8,
+        data: "https://kanggotan.site",
+        qrOptions: {
+          typeNumber: 0,
+          mode: "Byte",
+          errorCorrectionLevel: "H",
+        },
+        imageOptions: {
+          hideBackgroundDots: true,
+          imageSize: 0.4,
+          margin: 6,
+        },
+        dotsOptions: {
+          type: "extra-rounded",
+          color: "#4538c8",
+        },
+        backgroundOptions: {
+          color: "#ffffff",
+        },
+        cornersSquareOptions: {
+          type: "extra-rounded",
+          color: "#4538c8",
+        },
+        cornersDotOptions: {
+          type: "dot",
+          color: "#4538c8",
+        },
+      })
+      setQrCode(qr as unknown as QRCodeInstance)
+      if (containerRef.current) {
+        qr.append(containerRef.current)
       }
+    })
+  }, [])
 
-      // Draw logo in the middle
-      if (logoOption !== "none" && logoImg) {
-        // Draw circular background for logo (for contrast)
-        ctx.fillStyle = bgColor
-        ctx.beginPath()
-        ctx.arc(size / 2, size / 2, (logoSizePixels / 2) * 1.15, 0, Math.PI * 2)
-        ctx.fill()
+  // Update QR options when states change
+  useEffect(() => {
+    if (!qrCode) return
 
-        // Draw image logo
-        try {
-          ctx.drawImage(logoImg, logoX, logoY, logoSizePixels, logoSizePixels)
-        } catch (e) {
-          console.error("Failed to draw logo onto canvas:", e)
-        }
-      }
-    }
-
-    // Handle image loading
+    let image = ""
     if (logoOption === "risma") {
-      logoImg = new Image()
-      logoImg.src = "/logo-risma.png"
-      logoImg.onload = drawAll
+      image = "/logo-risma.png"
     } else if (logoOption === "custom" && customLogoUrl) {
-      logoImg = new Image()
-      logoImg.src = customLogoUrl
-      logoImg.onload = drawAll
-    } else {
-      drawAll()
+      image = customLogoUrl
     }
-  }, [data, dotType, color, bgColor, logoOption, customLogoUrl, logoSize])
+
+    qrCode.update({
+      data: data.trim() || " ",
+      image,
+      imageOptions: {
+        hideBackgroundDots: true,
+        imageSize: logoSize,
+        crossOrigin: "anonymous",
+      },
+      dotsOptions: {
+        type: dotType,
+        color,
+      },
+      backgroundOptions: {
+        color: bgColor,
+      },
+      cornersSquareOptions: {
+        type: cornerSquareType,
+        color,
+      },
+      cornersDotOptions: {
+        type: cornerDotType,
+        color,
+      },
+    })
+  }, [qrCode, data, dotType, cornerSquareType, cornerDotType, color, bgColor, logoOption, customLogoUrl, logoSize])
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -184,20 +130,23 @@ export default function QrGeneratorClient() {
     fileInputRef.current?.click()
   }
 
-  const handleDownload = () => {
-    const canvas = canvasRef.current
-    if (!canvas) return
+  const handleDownload = async (extension: "png" | "svg") => {
+    if (!qrCode) return
+    try {
+      const cleanName = data
+        .replace(/^https?:\/\//, "")
+        .replace(/[^a-z0-9]+/gi, "-")
+        .slice(0, 30) || "qr-code"
 
-    const link = document.createElement("a")
-    const cleanName = data
-      .replace(/^https?:\/\//, "")
-      .replace(/[^a-z0-9]+/gi, "-")
-      .slice(0, 30) || "qr-code"
-
-    link.download = `risma-qr-${cleanName}.png`
-    link.href = canvas.toDataURL("image/png")
-    link.click()
-    toast.success("QR Code berhasil diunduh (PNG)")
+      await qrCode.download({
+        name: `risma-qr-${cleanName}`,
+        extension,
+      })
+      toast.success(`QR Code berhasil diunduh (${extension.toUpperCase()})`)
+    } catch (err) {
+      console.error(err)
+      toast.error("Gagal mengunduh QR Code")
+    }
   }
 
   return (
@@ -219,19 +168,35 @@ export default function QrGeneratorClient() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <Field>
               <FieldLabel className="text-xs font-semibold">Pola Dot (QR Code)</FieldLabel>
-              <Select value={dotType} onValueChange={(val) => setDotType(val as CustomDotType)}>
+              <Select value={dotType} onValueChange={(val) => setDotType(val as DotType)}>
                 <SelectTrigger className="h-10 rounded-xl"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="love">Love ❤️ (Kustom)</SelectItem>
-                  <SelectItem value="diamond">Diamond 💎 (Kustom)</SelectItem>
-                  <SelectItem value="extra-rounded">Extra Rounded</SelectItem>
+                  <SelectItem value="extra-rounded">Extra Rounded (Mulus)</SelectItem>
                   <SelectItem value="rounded">Rounded</SelectItem>
-                  <SelectItem value="dots">Dots</SelectItem>
-                  <SelectItem value="square">Square (Kotak)</SelectItem>
+                  <SelectItem value="classy-rounded">Classy Rounded</SelectItem>
+                  <SelectItem value="classy">Classy</SelectItem>
+                  <SelectItem value="dots">Dots (Bulat-bulat)</SelectItem>
+                  <SelectItem value="square">Square (Klasik Kotak)</SelectItem>
                 </SelectContent>
               </Select>
             </Field>
 
+            <Field>
+              <FieldLabel className="text-xs font-semibold">Bentuk Corner Square</FieldLabel>
+              <Select value={cornerSquareType} onValueChange={(val) => setCornerSquareType(val as CornerSquareType)}>
+                <SelectTrigger className="h-10 rounded-xl"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="extra-rounded">Extra Rounded</SelectItem>
+                  <SelectItem value="rounded">Rounded</SelectItem>
+                  <SelectItem value="out-rounded">Out Rounded</SelectItem>
+                  <SelectItem value="dot">Circular</SelectItem>
+                  <SelectItem value="square">Square</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <Field>
               <FieldLabel className="text-xs font-semibold">Warna Pola QR</FieldLabel>
               <div className="flex gap-3">
@@ -249,9 +214,7 @@ export default function QrGeneratorClient() {
                 />
               </div>
             </Field>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <Field>
               <FieldLabel className="text-xs font-semibold">Warna Background</FieldLabel>
               <div className="flex gap-3">
@@ -321,7 +284,7 @@ export default function QrGeneratorClient() {
                 <input
                   type="range"
                   min="0.1"
-                  max="0.4"
+                  max="0.5"
                   step="0.05"
                   value={logoSize}
                   onChange={(e) => setLogoSize(Number(e.target.value))}
@@ -333,23 +296,39 @@ export default function QrGeneratorClient() {
         </CardContent>
       </Card>
 
-      <Card className="border-border/50 shadow-sm sticky top-6 bg-card flex flex-col items-center">
-        <CardContent className="p-6 md:p-8 flex flex-col items-center w-full">
+      <Card className="border-border/50 shadow-sm sticky top-6 bg-card flex flex-col items-center justify-center">
+        <CardContent className="p-6 md:p-8 flex flex-col items-center justify-center w-full">
           <div className="bg-muted/10 border border-dashed border-border rounded-2xl p-4 flex items-center justify-center shrink-0 size-[320px]">
-            <canvas ref={canvasRef} className="size-[288px] overflow-hidden" />
+            <div ref={containerRef} className="size-[288px] flex items-center justify-center overflow-hidden" />
           </div>
 
-          <div className="w-full mt-6">
+          <div className="w-full mt-6 space-y-3">
             <Button
               type="button"
               className="w-full rounded-xl font-bold h-11"
-              onClick={handleDownload}
+              onClick={() => handleDownload("png")}
             >
               <Download className="size-4 mr-2" /> Unduh PNG
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full rounded-xl font-bold h-11"
+              onClick={() => handleDownload("svg")}
+            >
+              <Download className="size-4 mr-2" /> Unduh SVG (Vector)
             </Button>
           </div>
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+function X(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M18 6 6 18M6 6l12 12" />
+    </svg>
   )
 }
