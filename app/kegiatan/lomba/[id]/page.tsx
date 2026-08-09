@@ -72,8 +72,21 @@ export default async function LombaDetailPage({ params }: PageProps) {
   ])
   const sponsorKategori = kategoriList.find((k) => k.id === lomba.kegiatan.kategori_id)
   const sponsorSegment = sponsorKategori ? kategoriYearSegment(sponsorKategori.name, lomba.kegiatan.year) : null
-  const upcomingMatches = pertandingan.filter((p) => p.status !== "selesai").slice(0, 4)
-  const recentMatches = pertandingan.filter((p) => p.status === "selesai").slice(-4).reverse()
+
+  const getMatchTime = (p: typeof pertandingan[number]) => {
+    return p.tanggal ? new Date(p.tanggal + "T" + (p.jam || "00:00:00")).getTime() : 0
+  }
+
+  const sortedUpcoming = [...pertandingan]
+    .filter((p) => p.status !== "selesai")
+    .sort((a, b) => getMatchTime(a) - getMatchTime(b))
+
+  const sortedRecent = [...pertandingan]
+    .filter((p) => p.status === "selesai")
+    .sort((a, b) => getMatchTime(b) - getMatchTime(a))
+
+  const upcomingMatches = sortedUpcoming.slice(0, 4)
+  const recentMatches = sortedRecent.slice(0, 4)
   const teams = Array.from(new Set(pertandingan.flatMap((p) => [p.tim_a, p.tim_b])))
     .filter((team) => team && !["TBD", "TBA"].includes(team.toUpperCase()))
   const standings = teams.map((team) => {
@@ -388,9 +401,9 @@ export default async function LombaDetailPage({ params }: PageProps) {
             <StaggerItem>
               <MatchTabs
                 recentMatches={recentMatches}
-                allRecentMatches={pertandingan.filter((p) => p.status === "selesai").reverse()}
+                allRecentMatches={sortedRecent}
                 upcomingMatches={upcomingMatches}
-                allUpcomingMatches={pertandingan.filter((p) => p.status !== "selesai")}
+                allUpcomingMatches={sortedUpcoming}
               />
             </StaggerItem>
           </StaggerChildren>
